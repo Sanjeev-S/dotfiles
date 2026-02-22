@@ -4,9 +4,11 @@ set -euo pipefail
 echo "==> Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
 
-# Ensure ~/.local/bin is in PATH permanently
+# Ensure ~/.local/bin is in PATH permanently.
+# Insert at top of .bashrc so it takes effect before any early-return guard
+# (e.g. "[ -z "$PS1" ] && return" which skips the rest for non-interactive shells).
 if ! grep -q 'export PATH="\$HOME/.local/bin:\$PATH"' ~/.bashrc 2>/dev/null; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+  sed -i '1a export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
