@@ -4,9 +4,8 @@ set -euo pipefail
 echo "==> Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
 
-# Pick up the new PATH (~/.local/bin)
-# shellcheck source=/dev/null
-source ~/.bashrc
+# Ensure ~/.local/bin is in PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 echo ""
 echo "==> Claude Code installed! Version:"
