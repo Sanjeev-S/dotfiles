@@ -50,27 +50,29 @@ Subscribe to your topic in the ntfy app (topic is printed at the end of bootstra
 
 ## What's included
 
-| Tool | Purpose |
-|------|---------|
-| Claude Code | AI coding assistant |
-| mosh | Mobile-friendly SSH (UDP, roaming) |
-| Eternal Terminal | Auto-reconnecting remote shell |
-| tmux | Terminal multiplexer (persistent sessions) |
-| ntfy hooks | Push notifications for Claude events |
-| Oh My Zsh | Zsh plugin framework |
-| Starship | Fast, customizable prompt |
-| zsh-autosuggestions | Fish-like command suggestions |
-| zsh-syntax-highlighting | Real-time command highlighting |
-| JetBrains Mono NF | Nerd Font with icon support |
+| Tool | Purpose | Platform |
+|------|---------|----------|
+| Claude Code | AI coding assistant | Linux |
+| mosh | Mobile-friendly SSH (UDP, roaming) | Both |
+| Eternal Terminal | Auto-reconnecting remote shell | Both |
+| tmux | Terminal multiplexer (persistent sessions) | Both |
+| ntfy hooks | Push notifications for Claude events | Both |
+| Oh My Zsh | Zsh plugin framework | macOS |
+| Starship | Fast, customizable prompt | macOS |
+| zsh-autosuggestions | Fish-like command suggestions | macOS |
+| zsh-syntax-highlighting | Real-time command highlighting | macOS |
+| JetBrains Mono NF | Nerd Font with icon support | macOS |
+| iTerm2 | Terminal emulator | macOS |
 
 ## Repo structure
 
 ```
+.gitignore                # .DS_Store, *.swp, settings.local.json
 bootstrap.sh              # single entry point (detects OS)
-zsh/zshrc                 # → ~/.zshrc
-starship/starship.toml    # → ~/.config/starship.toml
-shell/aliases.sh          # → ~/.aliases
-tmux/tmux.conf            # → ~/.tmux.conf
-claude/hooks/notify.sh    # → ~/.claude/hooks/notify.sh
-claude/settings.json      # → ~/.claude/settings.json
+tmux/tmux.conf            # → ~/.tmux.conf (both)
+claude/hooks/notify.sh    # → ~/.claude/hooks/notify.sh (both)
+claude/settings.json      # → ~/.claude/settings.json (both)
+shell/aliases.sh          # → ~/.aliases (macOS)
+zsh/zshrc                 # → ~/.zshrc (macOS)
+starship/starship.toml    # → ~/.config/starship.toml (macOS)
 ```

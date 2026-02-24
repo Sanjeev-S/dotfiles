@@ -39,12 +39,6 @@ if [ "$OS" = "Linux" ]; then
   fi
   export PATH="$HOME/.local/bin:$PATH"
 
-  # Symlink config files
-  echo "==> Symlinking config files..."
-  symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
-  symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
-  symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
-
 # ── macOS ───────────────────────────────────────────────────────────────────
 elif [ "$OS" = "Darwin" ]; then
   echo "==> Detected macOS — running Mac setup..."
@@ -82,42 +76,40 @@ elif [ "$OS" = "Darwin" ]; then
   [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
     git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
-  # Symlink config files
-  echo "==> Symlinking config files..."
+  # Symlink macOS config files
+  echo "==> Symlinking macOS config files..."
   symlink "$DOTFILES/shell/aliases.sh"         "$HOME/.aliases"
   symlink "$DOTFILES/zsh/zshrc"                "$HOME/.zshrc"
   symlink "$DOTFILES/starship/starship.toml"   "$HOME/.config/starship.toml"
-  symlink "$DOTFILES/claude/hooks/notify.sh"   "$HOME/.claude/hooks/notify.sh"
-  symlink "$DOTFILES/claude/settings.json"     "$HOME/.claude/settings.json"
 
 else
   echo "ERROR: Unsupported OS: $OS"
   exit 1
 fi
 
-# ── Shared ──────────────────────────────────────────────────────────────────
+# ── Shared config (both platforms) ───────────────────────────────────────────
+echo "==> Symlinking shared config files..."
+symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
+symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
+symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
+
+# ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "==> All done!"
+echo ""
+echo "    Versions:"
+echo "    mosh: $(mosh-server --version 2>&1 | head -1)"
+echo "    ET:   $(etserver --version 2>&1 | head -1)"
 
 if [ "$OS" = "Linux" ]; then
   NTFY_TOPIC="sanjeev-claude-99e0b7e3e3ae"
-  echo ""
-  echo "    Versions:"
-  echo "    mosh:   $(mosh-server --version 2>&1 | head -1)"
-  echo "    ET:     $(etserver --version 2>&1 | head -1)"
   echo "    claude: $(claude --version)"
   echo ""
   echo "    Next steps:"
   echo "    1. Run 'claude' to authenticate via OAuth"
   echo "    2. Subscribe to ntfy topic: ${NTFY_TOPIC}"
   echo "       https://ntfy.sh/${NTFY_TOPIC}"
-fi
-
-if [ "$OS" = "Darwin" ]; then
-  echo ""
-  echo "    Versions:"
-  echo "    mosh:     $(mosh-server --version 2>&1 | head -1)"
-  echo "    ET:       $(etserver --version 2>&1 | head -1)"
+elif [ "$OS" = "Darwin" ]; then
   echo "    starship: $(starship --version 2>&1 | head -1)"
   echo ""
   echo "    Next steps:"
