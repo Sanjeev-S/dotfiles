@@ -63,10 +63,17 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Installing iTerm2..."
   brew install --cask iterm2
 
-  # Symlink Claude config files
-  echo "==> Symlinking Claude config files..."
+  # Symlink config files
+  echo "==> Symlinking config files..."
+  symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
   symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
   symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
+
+  # Source aliases from .zshrc
+  if ! grep -q 'source.*\.aliases' "$HOME/.zshrc" 2>/dev/null; then
+    echo '[ -f ~/.aliases ] && source ~/.aliases' >> "$HOME/.zshrc"
+    echo "    Added alias sourcing to .zshrc"
+  fi
 
 else
   echo "ERROR: Unsupported OS: $OS"
