@@ -63,17 +63,32 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Installing iTerm2..."
   brew install --cask iterm2
 
+  echo "==> Installing Nerd Font..."
+  brew install --cask font-jetbrains-mono-nerd-font
+
+  echo "==> Installing Starship prompt..."
+  brew install starship
+
+  # Oh My Zsh
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    echo "==> Installing Oh My Zsh..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+
+  # Third-party zsh plugins
+  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+  [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+  [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
   # Symlink config files
   echo "==> Symlinking config files..."
-  symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
-  symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
-  symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
-
-  # Source aliases from .zshrc
-  if ! grep -q 'source.*\.aliases' "$HOME/.zshrc" 2>/dev/null; then
-    echo '[ -f ~/.aliases ] && source ~/.aliases' >> "$HOME/.zshrc"
-    echo "    Added alias sourcing to .zshrc"
-  fi
+  symlink "$DOTFILES/shell/aliases.sh"         "$HOME/.aliases"
+  symlink "$DOTFILES/zsh/zshrc"                "$HOME/.zshrc"
+  symlink "$DOTFILES/starship/starship.toml"   "$HOME/.config/starship.toml"
+  symlink "$DOTFILES/claude/hooks/notify.sh"   "$HOME/.claude/hooks/notify.sh"
+  symlink "$DOTFILES/claude/settings.json"     "$HOME/.claude/settings.json"
 
 else
   echo "ERROR: Unsupported OS: $OS"
@@ -101,6 +116,12 @@ fi
 if [ "$OS" = "Darwin" ]; then
   echo ""
   echo "    Versions:"
-  echo "    mosh: $(mosh-server --version 2>&1 | head -1)"
-  echo "    ET:   $(etserver --version 2>&1 | head -1)"
+  echo "    mosh:     $(mosh-server --version 2>&1 | head -1)"
+  echo "    ET:       $(etserver --version 2>&1 | head -1)"
+  echo "    starship: $(starship --version 2>&1 | head -1)"
+  echo ""
+  echo "    Next steps:"
+  echo "    1. Open iTerm2 > Preferences > Profiles > Text > Font"
+  echo "       Select 'JetBrains Mono Nerd Font'"
+  echo "    2. Run 'source ~/.zshrc' or restart your terminal"
 fi
