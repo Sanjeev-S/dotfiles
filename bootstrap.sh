@@ -120,6 +120,17 @@ symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
 symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
 symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
 
+# ── Claude Code plugins ──────────────────────────────────────────────────────
+if command -v claude &>/dev/null; then
+  echo "==> Installing/updating Claude Code plugins..."
+  claude plugin marketplace add obra/superpowers-marketplace
+  claude plugin marketplace add EveryInc/compound-engineering-plugin
+  claude plugin install superpowers@superpowers-marketplace
+  claude plugin install compound-engineering@compound-engineering
+else
+  echo "    Skipping Claude plugins (claude not found in PATH)"
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "==> All done!"

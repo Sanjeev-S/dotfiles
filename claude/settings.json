@@ -33,5 +33,17 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "compound-engineering@compound-engineering": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": { "source": "github", "repo": "obra/superpowers-marketplace" }
+    },
+    "compound-engineering": {
+      "source": { "source": "github", "repo": "EveryInc/compound-engineering-plugin" }
+    }
   }
 }
