@@ -123,8 +123,8 @@ symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
 # ── Claude Code plugins ──────────────────────────────────────────────────────
 if command -v claude &>/dev/null; then
   echo "==> Installing/updating Claude Code plugins..."
-  claude plugin marketplace add obra/superpowers-marketplace
-  claude plugin marketplace add EveryInc/compound-engineering-plugin
+  claude plugin marketplace add obra/superpowers-marketplace 2>/dev/null || true
+  claude plugin marketplace add EveryInc/compound-engineering-plugin 2>/dev/null || true
   claude plugin install superpowers@superpowers-marketplace
   claude plugin install compound-engineering@compound-engineering
 else
