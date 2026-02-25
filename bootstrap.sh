@@ -19,7 +19,7 @@ if [ "$OS" = "Linux" ]; then
 
   # Prerequisites
   echo "==> Installing prerequisites..."
-  apt-get install -y jq mosh
+  apt-get install -y jq mosh zsh
 
   # Eternal Terminal
   echo "==> Installing Eternal Terminal..."
@@ -30,14 +30,32 @@ if [ "$OS" = "Linux" ]; then
   # Claude Code
   echo "==> Installing Claude Code..."
   curl -fsSL https://claude.ai/install.sh | bash
-
-  # Ensure ~/.local/bin is in PATH permanently.
-  # Insert at top of .bashrc so it takes effect before any early-return guard
-  # (e.g. "[ -z "$PS1" ] && return" which skips the rest for non-interactive shells).
-  if ! grep -q 'export PATH="\$HOME/.local/bin:\$PATH"' ~/.bashrc 2>/dev/null; then
-    sed -i '1a export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc
-  fi
   export PATH="$HOME/.local/bin:$PATH"
+
+  # Starship prompt
+  if ! command -v starship &>/dev/null; then
+    echo "==> Installing Starship prompt..."
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+  fi
+
+  # Oh My Zsh
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    echo "==> Installing Oh My Zsh..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+
+  # Third-party zsh plugins
+  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+  [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+  [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
+  # Set zsh as default shell
+  if [ "$(basename "$SHELL")" != "zsh" ]; then
+    echo "==> Setting zsh as default shell..."
+    chsh -s "$(which zsh)"
+  fi
 
 # ── macOS ───────────────────────────────────────────────────────────────────
 elif [ "$OS" = "Darwin" ]; then
@@ -88,12 +106,6 @@ elif [ "$OS" = "Darwin" ]; then
   [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
     git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
-  # Symlink macOS config files
-  echo "==> Symlinking macOS config files..."
-  symlink "$DOTFILES/shell/aliases.sh"         "$HOME/.aliases"
-  symlink "$DOTFILES/zsh/zshrc"                "$HOME/.zshrc"
-  symlink "$DOTFILES/starship/starship.toml"   "$HOME/.config/starship.toml"
-
 else
   echo "ERROR: Unsupported OS: $OS"
   exit 1
@@ -101,6 +113,9 @@ fi
 
 # ── Shared config (both platforms) ───────────────────────────────────────────
 echo "==> Symlinking shared config files..."
+symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
+symlink "$DOTFILES/zsh/zshrc"               "$HOME/.zshrc"
+symlink "$DOTFILES/starship/starship.toml"  "$HOME/.config/starship.toml"
 symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
 symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
 symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
@@ -113,6 +128,8 @@ echo "    Versions:"
 echo "    mosh: $(mosh-server --version 2>&1 | head -1)"
 echo "    ET:   $(etserver --version 2>&1 | head -1)"
 
+echo "    starship: $(starship --version 2>&1 | head -1)"
+
 if [ "$OS" = "Linux" ]; then
   NTFY_TOPIC="sanjeev-claude-99e0b7e3e3ae"
   echo "    claude: $(claude --version)"
@@ -121,6 +138,4 @@ if [ "$OS" = "Linux" ]; then
   echo "    1. Run 'claude' to authenticate via OAuth"
   echo "    2. Subscribe to ntfy topic: ${NTFY_TOPIC}"
   echo "       https://ntfy.sh/${NTFY_TOPIC}"
-elif [ "$OS" = "Darwin" ]; then
-  echo "    starship: $(starship --version 2>&1 | head -1)"
 fi
