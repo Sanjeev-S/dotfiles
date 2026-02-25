@@ -27,10 +27,15 @@ if [ "$OS" = "Linux" ]; then
   apt-get update
   apt-get install -y et
 
+  # Node.js (for Claude Code)
+  if ! command -v npm &>/dev/null; then
+    echo "==> Installing Node.js and npm..."
+    apt-get install -y nodejs npm
+  fi
+
   # Claude Code
-  echo "==> Installing Claude Code..."
-  curl -fsSL https://claude.ai/install.sh | bash
-  export PATH="$HOME/.local/bin:$PATH"
+  echo "==> Installing/updating Claude Code..."
+  npm install -g @anthropic-ai/claude-code
 
   # Starship prompt
   if ! command -v starship &>/dev/null; then
