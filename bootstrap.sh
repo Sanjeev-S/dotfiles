@@ -116,6 +116,7 @@ fi
 
 # ── Shared config (both platforms) ───────────────────────────────────────────
 echo "==> Symlinking shared config files..."
+symlink "$DOTFILES/git/gitconfig"            "$HOME/.gitconfig"
 symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
 symlink "$DOTFILES/zsh/zshrc"               "$HOME/.zshrc"
 symlink "$DOTFILES/starship/starship.toml"  "$HOME/.config/starship.toml"

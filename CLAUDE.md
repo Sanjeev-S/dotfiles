@@ -6,6 +6,7 @@ Cross-platform (macOS + Linux) dotfiles managed via symlinks from topic director
 
 | Directory | Config file | Symlink target |
 |-----------|------------|----------------|
+| `git/` | `gitconfig` | `~/.gitconfig` |
 | `zsh/` | `zshrc` | `~/.zshrc` |
 | `shell/` | `aliases.sh` | `~/.aliases` |
 | `tmux/` | `tmux.conf` | `~/.tmux.conf` |
