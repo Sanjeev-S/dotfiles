@@ -90,6 +90,9 @@ elif [ "$OS" = "Darwin" ]; then
   /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' 'JetBrainsMonoNF-Regular 13'" \
     "$ITERM_PLIST" 2>/dev/null || true
 
+  echo "==> Configuring iTerm2 tmux integration (open in tabs, not windows)..."
+  defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 2
+
   echo "==> Installing Starship prompt..."
   brew install starship
 
