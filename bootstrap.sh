@@ -60,6 +60,18 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Installing Nerd Font..."
   brew install --cask font-jetbrains-mono-nerd-font
 
+  echo "==> Setting iTerm2 font to JetBrains Mono Nerd Font..."
+  ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+  if [ ! -f "$ITERM_PLIST" ]; then
+    echo "    Launching iTerm2 briefly to generate preferences..."
+    open -a iTerm2
+    sleep 3
+    osascript -e 'quit app "iTerm2"'
+    sleep 1
+  fi
+  /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' 'JetBrainsMonoNF-Regular 13'" \
+    "$ITERM_PLIST" 2>/dev/null || true
+
   echo "==> Installing Starship prompt..."
   brew install starship
 
@@ -111,9 +123,4 @@ if [ "$OS" = "Linux" ]; then
   echo "       https://ntfy.sh/${NTFY_TOPIC}"
 elif [ "$OS" = "Darwin" ]; then
   echo "    starship: $(starship --version 2>&1 | head -1)"
-  echo ""
-  echo "    Next steps:"
-  echo "    1. Open iTerm2 > Preferences > Profiles > Text > Font"
-  echo "       Select 'JetBrains Mono Nerd Font'"
-  echo "    2. Run 'source ~/.zshrc' or restart your terminal"
 fi
