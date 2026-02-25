@@ -33,6 +33,12 @@ if [ "$OS" = "Linux" ]; then
     apt-get install -y nodejs npm
   fi
 
+  # GitHub CLI
+  if ! command -v gh &>/dev/null; then
+    echo "==> Installing GitHub CLI..."
+    apt-get install -y gh
+  fi
+
   # Claude Code
   echo "==> Installing/updating Claude Code..."
   npm install -g @anthropic-ai/claude-code
