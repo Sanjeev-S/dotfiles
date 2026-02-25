@@ -126,7 +126,7 @@ if command -v claude &>/dev/null; then
   claude plugin marketplace add obra/superpowers-marketplace 2>/dev/null || true
   claude plugin marketplace add EveryInc/compound-engineering-plugin 2>/dev/null || true
   claude plugin install superpowers@superpowers-marketplace
-  claude plugin install compound-engineering@compound-engineering
+  claude plugin install compound-engineering@every-marketplace
 else
   echo "    Skipping Claude plugins (claude not found in PATH)"
 fi
