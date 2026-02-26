@@ -25,6 +25,8 @@ if [ "$OS" = "Linux" ]; then
   echo "==> Installing Eternal Terminal..."
   add-apt-repository -y ppa:jgmath2000/et
   apt-get update
+  apt-get upgrade -y
+
   apt-get install -y et
 
   # Node.js (for Claude Code)
@@ -77,8 +79,15 @@ elif [ "$OS" = "Darwin" ]; then
     exit 1
   fi
 
+  echo "==> Updating packages..."
+  brew update
+  brew upgrade
+
   echo "==> Installing mosh..."
   brew install mosh
+
+  echo "==> Installing GitHub CLI..."
+  brew install gh
 
   echo "==> Installing Eternal Terminal..."
   brew install MisterTea/et/et
