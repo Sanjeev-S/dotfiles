@@ -1,3 +1,9 @@
 [user]
 	name = Sanjeev Suresh
 	email = Sanjeev-S@users.noreply.github.com
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
