@@ -37,7 +37,7 @@ if [ "$OS" = "Linux" ]; then
 
   # Claude Code (native install)
   echo "==> Installing/updating Claude Code..."
-  curl -fsSL https://cli.anthropic.com/install.sh | sh
+  curl -fsSL https://claude.ai/install.sh | bash
 
   # Starship prompt
   if ! command -v starship &>/dev/null; then
