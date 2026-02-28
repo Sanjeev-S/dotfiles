@@ -45,6 +45,22 @@ if [ "$OS" = "Linux" ]; then
     curl -sS https://starship.rs/install.sh | sh -s -- -y
   fi
 
+  # 1Password CLI
+  if ! command -v op &>/dev/null; then
+    echo "==> Installing 1Password CLI..."
+    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+      gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+      tee /etc/apt/sources.list.d/1password.list
+    mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+    curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+      tee /etc/debsig/policies/AC2D62742012EA22/1password.pol > /dev/null
+    mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22/
+    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+      gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+    apt-get update && apt-get install -y 1password-cli
+  fi
+
   # Oh My Zsh
   if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "==> Installing Oh My Zsh..."
@@ -116,6 +132,9 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Installing Starship prompt..."
   brew install starship
 
+  echo "==> Installing 1Password CLI..."
+  brew install --cask 1password-cli
+
   # Oh My Zsh
   if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "==> Installing Oh My Zsh..."
@@ -145,6 +164,21 @@ symlink "$DOTFILES/claude/hooks/notify.sh"            "$HOME/.claude/hooks/notif
 symlink "$DOTFILES/claude/hooks/ntfy-subscriber.sh"   "$HOME/.claude/hooks/ntfy-subscriber.sh"
 symlink "$DOTFILES/claude/settings.json"              "$HOME/.claude/settings.json"
 symlink "$DOTFILES/claude/statusline.sh"              "$HOME/.claude/statusline.sh"
+
+# Cache secrets from 1Password
+if command -v op &>/dev/null && [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+  echo "==> Caching secrets from 1Password..."
+  install -d -m 700 "$HOME/.config/dotfiles"
+  (
+    umask 077
+    NTFY_TOPIC_VAL="$(op read 'op://Dotfiles/ntfy-topic/credential' --no-newline 2>/dev/null)" && {
+      printf 'export NTFY_TOPIC=%q\n' "$NTFY_TOPIC_VAL" > "$HOME/.config/dotfiles/secrets.sh"
+      echo "    Secrets cached to ~/.config/dotfiles/secrets.sh"
+    } || echo "    WARNING: Failed to read secrets from 1Password."
+  )
+else
+  echo "    NOTE: op CLI or OP_SERVICE_ACCOUNT_TOKEN missing. Skipping secret caching."
+fi
 
 # macOS-only: LaunchAgent for ntfy subscriber → native notifications
 if [ "$OS" = "Darwin" ]; then
@@ -180,4 +214,12 @@ if [ "$OS" = "Linux" ]; then
   echo ""
   echo "    Next steps:"
   echo "    1. Run 'claude' to authenticate via OAuth"
+fi
+
+if ! command -v op &>/dev/null || [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+  echo ""
+  echo "    To enable ntfy notifications:"
+  echo "    1. Install 1Password CLI: brew install --cask 1password-cli"
+  echo "    2. Set OP_SERVICE_ACCOUNT_TOKEN in your environment"
+  echo "    3. Re-run bootstrap.sh"
 fi

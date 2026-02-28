@@ -16,6 +16,7 @@ Cross-platform (macOS + Linux) dotfiles managed via symlinks from topic director
 | `claude/` | `com.sanjeev.ntfy-subscriber.plist` | `~/Library/LaunchAgents/...` (macOS) |
 | `claude/hooks/` | `notify.sh` | `~/.claude/hooks/notify.sh` |
 | `claude/hooks/` | `ntfy-subscriber.sh` | `~/.claude/hooks/ntfy-subscriber.sh` |
+| *(generated)* | `secrets.sh` | `~/.config/dotfiles/secrets.sh` |
 
 ## Conventions
 

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Claude Code ntfy notification hook
 
-NTFY_TOPIC="sanjeev-claude-99e0b7e3e3ae"
+# Source secrets if NTFY_TOPIC not already in environment
+[ -z "${NTFY_TOPIC:-}" ] && [ -f "$HOME/.config/dotfiles/secrets.sh" ] && source "$HOME/.config/dotfiles/secrets.sh"
+
+# Exit silently if topic unavailable — notifications are best-effort
+[ -z "${NTFY_TOPIC:-}" ] && exit 0
+
 HOST="$(hostname -s)"
 
 read -r input
