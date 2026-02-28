@@ -13,7 +13,9 @@ Cross-platform (macOS + Linux) dotfiles managed via symlinks from topic director
 | `starship/` | `starship.toml` | `~/.config/starship.toml` |
 | `claude/` | `settings.json` | `~/.claude/settings.json` |
 | `claude/` | `statusline.sh` | `~/.claude/statusline.sh` |
+| `claude/` | `com.sanjeev.ntfy-subscriber.plist` | `~/Library/LaunchAgents/...` (macOS) |
 | `claude/hooks/` | `notify.sh` | `~/.claude/hooks/notify.sh` |
+| `claude/hooks/` | `ntfy-subscriber.sh` | `~/.claude/hooks/ntfy-subscriber.sh` |
 
 ## Conventions
 

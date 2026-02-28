@@ -1,6 +1,6 @@
 # dotfiles
 
-Bootstrap a fresh server or Mac with Claude Code, mosh, Eternal Terminal, tmux, ntfy notifications, and a modern zsh setup (Oh My Zsh + Starship + plugins).
+Bootstrap a fresh server or Mac with Claude Code, mosh, Eternal Terminal, tmux, native notifications, and a modern zsh setup (Oh My Zsh + Starship + plugins).
 
 Config files live in topic directories and get symlinked into `$HOME` — edits in either location propagate automatically.
 
@@ -46,7 +46,7 @@ Claude Code hooks send push notifications via [ntfy.sh](https://ntfy.sh) when:
 - **Claude finishes** a task (Stop)
 - **Claude needs input** (AskUserQuestion) — high priority
 
-Subscribe to your topic in the ntfy app (topic is printed at the end of bootstrap).
+On macOS, a LaunchAgent subscribes to the ntfy topic and shows native Notification Center alerts via `terminal-notifier`. The subscriber starts automatically at login and is installed by `bootstrap.sh`.
 
 ## What's included
 
@@ -57,6 +57,8 @@ Subscribe to your topic in the ntfy app (topic is printed at the end of bootstra
 | Eternal Terminal | Auto-reconnecting remote shell | Both |
 | tmux | Terminal multiplexer (persistent sessions) | Both |
 | ntfy hooks | Push notifications for Claude events | Both |
+| ntfy subscriber | Native macOS notifications from ntfy | macOS |
+| terminal-notifier | macOS Notification Center integration | macOS |
 | Oh My Zsh | Zsh plugin framework | macOS |
 | Starship | Fast, customizable prompt | macOS |
 | zsh-autosuggestions | Fish-like command suggestions | macOS |
@@ -71,6 +73,8 @@ Subscribe to your topic in the ntfy app (topic is printed at the end of bootstra
 bootstrap.sh              # single entry point (detects OS)
 tmux/tmux.conf            # → ~/.tmux.conf (both)
 claude/hooks/notify.sh    # → ~/.claude/hooks/notify.sh (both)
+claude/hooks/ntfy-subscriber.sh  # → ~/.claude/hooks/ntfy-subscriber.sh (both)
+claude/com.sanjeev.ntfy-subscriber.plist  # → ~/Library/LaunchAgents/... (macOS)
 claude/settings.json      # → ~/.claude/settings.json (both)
 shell/aliases.sh          # → ~/.aliases (macOS)
 zsh/zshrc                 # → ~/.zshrc (macOS)
