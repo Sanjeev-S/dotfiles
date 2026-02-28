@@ -12,6 +12,7 @@ Cross-platform (macOS + Linux) dotfiles managed via symlinks from topic director
 | `tmux/` | `tmux.conf` | `~/.tmux.conf` |
 | `starship/` | `starship.toml` | `~/.config/starship.toml` |
 | `claude/` | `settings.json` | `~/.claude/settings.json` |
+| `claude/` | `statusline.sh` | `~/.claude/statusline.sh` |
 | `claude/hooks/` | `notify.sh` | `~/.claude/hooks/notify.sh` |
 
 ## Conventions
