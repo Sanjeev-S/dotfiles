@@ -15,8 +15,8 @@
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/ntfy-subscriber.log</string>
+    <string>/Users/sanjeev/Library/Logs/ntfy-subscriber.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/ntfy-subscriber.err</string>
+    <string>/Users/sanjeev/Library/Logs/ntfy-subscriber.err</string>
 </dict>
 </plist>
