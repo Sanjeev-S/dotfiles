@@ -110,6 +110,9 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Configuring iTerm2 tmux integration (open in tabs, not windows)..."
   defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 2
 
+  echo "==> Installing terminal-notifier..."
+  brew install terminal-notifier
+
   echo "==> Installing Starship prompt..."
   brew install starship
 
@@ -138,9 +141,18 @@ symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
 symlink "$DOTFILES/zsh/zshrc"               "$HOME/.zshrc"
 symlink "$DOTFILES/starship/starship.toml"  "$HOME/.config/starship.toml"
 symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
-symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
-symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
-symlink "$DOTFILES/claude/statusline.sh"   "$HOME/.claude/statusline.sh"
+symlink "$DOTFILES/claude/hooks/notify.sh"            "$HOME/.claude/hooks/notify.sh"
+symlink "$DOTFILES/claude/hooks/ntfy-subscriber.sh"   "$HOME/.claude/hooks/ntfy-subscriber.sh"
+symlink "$DOTFILES/claude/settings.json"              "$HOME/.claude/settings.json"
+symlink "$DOTFILES/claude/statusline.sh"              "$HOME/.claude/statusline.sh"
+
+# macOS-only: LaunchAgent for ntfy subscriber → native notifications
+if [ "$OS" = "Darwin" ]; then
+  symlink "$DOTFILES/claude/com.sanjeev.ntfy-subscriber.plist" \
+    "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"
+  launchctl bootout gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist" 2>/dev/null || true
+  launchctl bootstrap gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"
+fi
 
 # ── Claude Code plugins ──────────────────────────────────────────────────────
 if command -v claude &>/dev/null; then
@@ -164,11 +176,8 @@ echo "    ET:   $(etserver --version 2>&1 | head -1)"
 echo "    starship: $(starship --version 2>&1 | head -1)"
 
 if [ "$OS" = "Linux" ]; then
-  NTFY_TOPIC="sanjeev-claude-99e0b7e3e3ae"
   echo "    claude: $(claude --version)"
   echo ""
   echo "    Next steps:"
   echo "    1. Run 'claude' to authenticate via OAuth"
-  echo "    2. Subscribe to ntfy topic: ${NTFY_TOPIC}"
-  echo "       https://ntfy.sh/${NTFY_TOPIC}"
 fi

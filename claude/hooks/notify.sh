@@ -5,7 +5,7 @@ NTFY_TOPIC="sanjeev-claude-99e0b7e3e3ae"
 HOST="$(hostname -s)"
 
 read -r input
-tool_name=$(echo "$input" | jq -r '.tool_name // empty')
+tool_name="$(echo "$input" | jq -r '.tool_name // empty')"
 
 case "$tool_name" in
   Stop)
