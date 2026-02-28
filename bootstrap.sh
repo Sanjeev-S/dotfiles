@@ -29,21 +29,15 @@ if [ "$OS" = "Linux" ]; then
 
   apt-get install -y et
 
-  # Node.js (for Claude Code)
-  if ! command -v npm &>/dev/null; then
-    echo "==> Installing Node.js and npm..."
-    apt-get install -y nodejs npm
-  fi
-
   # GitHub CLI
   if ! command -v gh &>/dev/null; then
     echo "==> Installing GitHub CLI..."
     apt-get install -y gh
   fi
 
-  # Claude Code
+  # Claude Code (native install)
   echo "==> Installing/updating Claude Code..."
-  npm install -g @anthropic-ai/claude-code
+  curl -fsSL https://cli.anthropic.com/install.sh | sh
 
   # Starship prompt
   if ! command -v starship &>/dev/null; then
