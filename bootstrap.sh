@@ -146,7 +146,7 @@ symlink "$DOTFILES/starship/starship.toml"  "$HOME/.config/starship.toml"
 symlink "$DOTFILES/tmux/tmux.conf"          "$HOME/.tmux.conf"
 symlink "$DOTFILES/claude/hooks/notify.sh"  "$HOME/.claude/hooks/notify.sh"
 symlink "$DOTFILES/claude/settings.json"    "$HOME/.claude/settings.json"
-symlink "$DOTFILES/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
+symlink "$DOTFILES/claude/statusline.sh"   "$HOME/.claude/statusline.sh"
 
 # ── Claude Code plugins ──────────────────────────────────────────────────────
 if command -v claude &>/dev/null; then
