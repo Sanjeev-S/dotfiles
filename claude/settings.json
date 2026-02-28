@@ -21,6 +21,10 @@
       "Bash(sudo *)"
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -47,6 +51,12 @@
       }
     },
     "compound-engineering": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-engineering-plugin"
+      }
+    },
+    "every-marketplace": {
       "source": {
         "source": "github",
         "repo": "EveryInc/compound-engineering-plugin"
