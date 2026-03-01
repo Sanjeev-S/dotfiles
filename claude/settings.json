@@ -21,10 +21,6 @@
       "Bash(sudo *)"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh"
-  },
   "hooks": {
     "PostToolUse": [
       {
@@ -37,6 +33,10 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
   },
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
