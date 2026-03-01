@@ -220,6 +220,6 @@ if ! command -v op &>/dev/null || [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
   echo ""
   echo "    To enable ntfy notifications:"
   echo "    1. Install 1Password CLI: brew install --cask 1password-cli"
-  echo "    2. Set OP_SERVICE_ACCOUNT_TOKEN in your environment"
+  echo "    2. Set OP_SERVICE_ACCOUNT_TOKEN in ~/.config/dotfiles/.env"
   echo "    3. Re-run bootstrap.sh"
 fi
