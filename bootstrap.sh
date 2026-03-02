@@ -134,10 +134,18 @@ if command -v op &>/dev/null && [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
   install -d -m 700 "$HOME/.config/dotfiles"
   (
     umask 077
+    SECRETS_FILE="$HOME/.config/dotfiles/secrets.sh"
+    : > "$SECRETS_FILE"
+
     NTFY_TOPIC_VAL="$(op read 'op://Dotfiles/ntfy-topic/credential' --no-newline 2>/dev/null)" && {
-      printf 'export NTFY_TOPIC=%q\n' "$NTFY_TOPIC_VAL" > "$HOME/.config/dotfiles/secrets.sh"
-      echo "    Secrets cached to ~/.config/dotfiles/secrets.sh"
-    } || echo "    WARNING: Failed to read secrets from 1Password."
+      printf 'export NTFY_TOPIC=%q\n' "$NTFY_TOPIC_VAL" >> "$SECRETS_FILE"
+    } || echo "    WARNING: Failed to read NTFY_TOPIC from 1Password."
+
+    OPENROUTER_API_KEY_VAL="$(op read 'op://Dotfiles/openrouter-api-key/credential' --no-newline 2>/dev/null)" && {
+      printf 'export OPENROUTER_API_KEY=%q\n' "$OPENROUTER_API_KEY_VAL" >> "$SECRETS_FILE"
+    } || echo "    WARNING: Failed to read OPENROUTER_API_KEY from 1Password."
+
+    echo "    Secrets cached to ~/.config/dotfiles/secrets.sh"
   )
 else
   echo "    NOTE: op CLI or OP_SERVICE_ACCOUNT_TOKEN missing. Skipping secret caching."
