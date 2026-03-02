@@ -1,7 +1,7 @@
 # Notification Suppression When User Is Active
 
 **Date:** 2026-03-02
-**Status:** Approved
+**Status:** Implemented
 
 ## Problem
 
