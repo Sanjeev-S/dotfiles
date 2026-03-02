@@ -19,25 +19,21 @@ if [ "$OS" = "Linux" ]; then
 
   # Prerequisites
   echo "==> Installing prerequisites..."
+  apt-get update
   apt-get install -y jq mosh zsh
 
-  # Eternal Terminal
+  # Eternal Terminal (requires PPA)
+  if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
+    echo "==> Adding Eternal Terminal PPA..."
+    add-apt-repository -y ppa:jgmath2000/et
+    apt-get update
+  fi
   echo "==> Installing Eternal Terminal..."
-  add-apt-repository -y ppa:jgmath2000/et
-  apt-get update
-  apt-get upgrade -y
-
   apt-get install -y et
 
   # GitHub CLI
-  if ! command -v gh &>/dev/null; then
-    echo "==> Installing GitHub CLI..."
-    apt-get install -y gh
-  fi
-
-  # Claude Code (native install)
-  echo "==> Installing/updating Claude Code..."
-  curl -fsSL https://claude.ai/install.sh | bash
+  echo "==> Installing GitHub CLI..."
+  apt-get install -y gh
 
   # Starship prompt
   if ! command -v starship &>/dev/null; then
@@ -61,19 +57,6 @@ if [ "$OS" = "Linux" ]; then
     apt-get update && apt-get install -y 1password-cli
   fi
 
-  # Oh My Zsh
-  if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "==> Installing Oh My Zsh..."
-    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  fi
-
-  # Third-party zsh plugins
-  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-  [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-  [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-
   # Set zsh as default shell
   if [ "$(basename "$SHELL")" != "zsh" ]; then
     echo "==> Setting zsh as default shell..."
@@ -89,27 +72,16 @@ elif [ "$OS" = "Darwin" ]; then
     exit 1
   fi
 
-  echo "==> Updating packages..."
-  brew update
-  brew upgrade
-
-  echo "==> Installing mosh..."
+  echo "==> Installing packages via Homebrew..."
   brew install mosh
-
-  echo "==> Installing jq..."
   brew install jq
-
-  echo "==> Installing GitHub CLI..."
   brew install gh
-
-  echo "==> Installing Eternal Terminal..."
   brew install MisterTea/et/et
-
-  echo "==> Installing iTerm2..."
   brew install --cask iterm2
-
-  echo "==> Installing Nerd Font..."
   brew install --cask font-jetbrains-mono-nerd-font
+  brew install terminal-notifier
+  brew install starship
+  brew install --cask 1password-cli
 
   echo "==> Setting iTerm2 font to JetBrains Mono Nerd Font..."
   ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
@@ -126,34 +98,25 @@ elif [ "$OS" = "Darwin" ]; then
   echo "==> Configuring iTerm2 tmux integration (open in tabs, not windows)..."
   defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 2
 
-  echo "==> Installing terminal-notifier..."
-  brew install terminal-notifier
-
-  echo "==> Installing Starship prompt..."
-  brew install starship
-
-  echo "==> Installing 1Password CLI..."
-  brew install --cask 1password-cli
-
-  # Oh My Zsh
-  if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "==> Installing Oh My Zsh..."
-    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  fi
-
-  # Third-party zsh plugins
-  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-  [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-  [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-
 else
   echo "ERROR: Unsupported OS: $OS"
   exit 1
 fi
 
 # ── Shared config (both platforms) ───────────────────────────────────────────
+
+# ── Oh My Zsh + plugins (both platforms) ──────────────────────────────────
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "==> Installing Oh My Zsh..."
+  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+  git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
 echo "==> Symlinking shared config files..."
 symlink "$DOTFILES/git/gitconfig"            "$HOME/.gitconfig"
 symlink "$DOTFILES/shell/aliases.sh"        "$HOME/.aliases"
@@ -188,6 +151,10 @@ if [ "$OS" = "Darwin" ]; then
   launchctl bootstrap gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"
 fi
 
+# ── Claude Code ───────────────────────────────────────────────────────────
+echo "==> Installing/updating Claude Code..."
+curl -fsSL https://claude.ai/install.sh | bash
+
 # ── Claude Code plugins ──────────────────────────────────────────────────────
 if command -v claude &>/dev/null; then
   echo "==> Installing/updating Claude Code plugins..."
@@ -204,17 +171,10 @@ echo ""
 echo "==> All done!"
 echo ""
 echo "    Versions:"
-echo "    mosh: $(mosh-server --version 2>&1 | head -1)"
-echo "    ET:   $(etserver --version 2>&1 | head -1)"
-
-echo "    starship: $(starship --version 2>&1 | head -1)"
-
-if [ "$OS" = "Linux" ]; then
-  echo "    claude: $(claude --version)"
-  echo ""
-  echo "    Next steps:"
-  echo "    1. Run 'claude' to authenticate via OAuth"
-fi
+command -v mosh-server &>/dev/null && echo "    mosh: $(mosh-server --version 2>&1 | head -1)"
+command -v etserver &>/dev/null && echo "    ET:   $(etserver --version 2>&1 | head -1)"
+command -v starship &>/dev/null && echo "    starship: $(starship --version 2>&1 | head -1)"
+command -v claude &>/dev/null && echo "    claude: $(claude --version)"
 
 if [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
   echo ""
