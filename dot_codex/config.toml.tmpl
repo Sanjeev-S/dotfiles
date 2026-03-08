@@ -1,0 +1,13 @@
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+
+{{ if eq .machine_type "mac-personal" -}}
+[projects."{{ .chezmoi.homeDir }}/sanjeev"]
+trust_level = "trusted"
+
+[projects."{{ .chezmoi.homeDir }}/Downloads/Documents"]
+trust_level = "trusted"
+
+[projects."{{ .chezmoi.homeDir }}/dotfiles"]
+trust_level = "trusted"
+{{ end -}}
