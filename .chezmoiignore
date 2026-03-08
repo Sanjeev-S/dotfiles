@@ -1,0 +1,13 @@
+# Repo-only files (not deployed to $HOME)
+CLAUDE.md
+README.md
+docs/**
+setup-op-token.sh
+bootstrap.sh
+.claude/**
+.gitignore
+
+{{ if ne .chezmoi.os "darwin" }}
+# macOS-only files
+private_Library/**
+{{ end }}
