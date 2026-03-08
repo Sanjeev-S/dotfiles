@@ -1,0 +1,10 @@
+{{- $machine_types := list "mac-personal" "linux-server" -}}
+{{- $machine_type := promptChoiceOnce . "machine_type" "Machine type" $machine_types -}}
+{{- $op_token := promptStringOnce . "op_token" "1Password service account token (leave blank to skip)" -}}
+
+sourceDir = {{ joinPath .chezmoi.homeDir "dotfiles" | quote }}
+
+[data]
+    machine_type = {{ $machine_type | quote }}
+    op_token = {{ $op_token | quote }}
+    email = "Sanjeev-S@users.noreply.github.com"
