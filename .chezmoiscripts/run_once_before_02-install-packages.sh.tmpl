@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .chezmoi.os "darwin" -}}
+echo "==> Installing macOS packages via Homebrew..."
+brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide
+brew install MisterTea/et/et
+brew install --cask iterm2
+brew install --cask font-jetbrains-mono-nerd-font
+brew install --cask 1password-cli
+
+echo "==> Configuring iTerm2..."
+ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+if [ -f "$ITERM_PLIST" ]; then
+  /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' 'JetBrainsMonoNF-Regular 13'" \
+    "$ITERM_PLIST" 2>/dev/null || true
+  defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 2
+fi
+
+{{ else -}}
+echo "==> Installing Linux packages..."
+apt-get update
+apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf delta zoxide
+
+# Eternal Terminal
+if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
+  echo "==> Adding Eternal Terminal PPA..."
+  add-apt-repository -y ppa:jgmath2000/et
+  apt-get update
+fi
+apt-get install -y et
+
+# 1Password CLI
+if ! command -v op &>/dev/null; then
+  echo "==> Installing 1Password CLI..."
+  curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+    tee /etc/apt/sources.list.d/1password.list
+  mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+  curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+    tee /etc/debsig/policies/AC2D62742012EA22/1password.pol > /dev/null
+  mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22/
+  curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+  apt-get update && apt-get install -y 1password-cli
+fi
+
+# Starship
+if ! command -v starship &>/dev/null; then
+  echo "==> Installing Starship..."
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
+fi
+
+{{ end -}}
+
+# Oh My Zsh (both platforms)
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "==> Installing Oh My Zsh..."
+  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+  git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
+# Set zsh as default shell
+if [ "$(basename "$SHELL")" != "zsh" ]; then
+  echo "==> Setting zsh as default shell..."
+  chsh -s "$(which zsh)"
+fi
+
+echo "==> Package installation complete"
