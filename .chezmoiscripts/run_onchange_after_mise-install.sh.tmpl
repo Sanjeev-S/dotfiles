@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# mise config hash: {{ include "dot_config/mise/config.toml" | sha256sum }}
+
+echo "==> Installing mise tools..."
+export PATH="$HOME/.local/bin:$PATH"
+mise install -y
+echo "==> mise tools installed"
