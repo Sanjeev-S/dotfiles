@@ -1,0 +1,1018 @@
+# Chezmoi Migration Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Migrate dotfiles from custom symlink-based bootstrap.sh to chezmoi + mise + 1Password, with Claude Code and Codex agent configs.
+
+**Architecture:** Repo root is the chezmoi source directory. Files use chezmoi naming conventions (dot_, executable_, .tmpl). Scripts in .chezmoiscripts/ handle package installation, mise setup, and agent installation. Templates conditionally vary config by OS and machine type.
+
+**Tech Stack:** chezmoi, mise, 1Password CLI, zsh, Go templates
+
+**Design doc:** `docs/plans/2026-03-08-chezmoi-migration-design.md`
+
+---
+
+### Task 1: Install chezmoi and verify it works
+
+**Files:**
+- None (local tool install)
+
+**Step 1: Install chezmoi on this Mac**
+
+Run:
+```bash
+brew install chezmoi
+```
+
+**Step 2: Verify installation**
+
+Run:
+```bash
+chezmoi --version
+```
+Expected: version 2.69.x or newer
+
+**Step 3: Commit**
+
+No commit — no file changes yet.
+
+---
+
+### Task 2: Create .chezmoi.toml.tmpl (init config)
+
+**Files:**
+- Create: `.chezmoi.toml.tmpl`
+
+**Step 1: Write the init config template**
+
+Create `.chezmoi.toml.tmpl` in the repo root:
+
+```
+{{- $machine_types := list "mac-personal" "linux-server" -}}
+{{- $machine_type := promptChoiceOnce . "machine_type" "Machine type" $machine_types -}}
+{{- $op_token := promptStringOnce . "op_token" "1Password service account token (leave blank to skip)" -}}
+
+sourceDir = {{ joinPath .chezmoi.homeDir "dotfiles" | quote }}
+
+[data]
+    machine_type = {{ $machine_type | quote }}
+    op_token = {{ $op_token | quote }}
+    email = "Sanjeev-S@users.noreply.github.com"
+```
+
+**Step 2: Verify template renders**
+
+Run:
+```bash
+chezmoi execute-template < .chezmoi.toml.tmpl
+```
+Expected: Prompts for machine type and OP token, then outputs rendered TOML.
+
+**Step 3: Commit**
+
+```bash
+git add .chezmoi.toml.tmpl
+git commit -m "Add chezmoi init config with machine type and 1Password prompts"
+```
+
+---
+
+### Task 3: Create .chezmoiignore
+
+**Files:**
+- Create: `.chezmoiignore`
+
+**Step 1: Write the ignore file**
+
+Create `.chezmoiignore` in the repo root:
+
+```
+# Repo-only files (not deployed to $HOME)
+CLAUDE.md
+README.md
+docs/**
+setup-op-token.sh
+bootstrap.sh
+.claude/**
+.gitignore
+
+{{ if ne .chezmoi.os "darwin" }}
+# macOS-only files
+private_Library/**
+{{ end }}
+```
+
+**Step 2: Verify it parses**
+
+Run:
+```bash
+chezmoi managed --include=files
+```
+Expected: No errors. Should not list CLAUDE.md, README.md, docs/, setup-op-token.sh, or bootstrap.sh.
+
+**Step 3: Commit**
+
+```bash
+git add .chezmoiignore
+git commit -m "Add chezmoiignore to exclude repo-only files"
+```
+
+---
+
+### Task 4: Migrate static dotfiles to chezmoi naming
+
+**Files:**
+- Rename: `tmux/tmux.conf` → `dot_tmux.conf`
+- Rename: `shell/aliases.sh` → `dot_aliases`
+- Rename: `starship/starship.toml` → `dot_config/starship.toml`
+
+**Step 1: Create dot_config directory**
+
+Run:
+```bash
+mkdir -p dot_config
+```
+
+**Step 2: Move static files with git mv**
+
+Run:
+```bash
+git mv tmux/tmux.conf dot_tmux.conf
+rmdir tmux
+git mv shell/aliases.sh dot_aliases
+rmdir shell
+git mv starship/starship.toml dot_config/starship.toml
+rmdir starship
+```
+
+**Step 3: Verify chezmoi sees them**
+
+Run:
+```bash
+chezmoi managed --include=files
+```
+Expected: Lists `.tmux.conf`, `.aliases`, `.config/starship.toml` as managed targets.
+
+**Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "Migrate static dotfiles to chezmoi naming conventions"
+```
+
+---
+
+### Task 5: Migrate templated dotfiles (gitconfig, zshrc)
+
+**Files:**
+- Rename + convert: `git/gitconfig` → `dot_gitconfig.tmpl`
+- Rename + convert: `zsh/zshrc` → `dot_zshrc.tmpl`
+
+**Step 1: Create dot_gitconfig.tmpl**
+
+Move and convert `git/gitconfig`:
+
+```bash
+git mv git/gitconfig dot_gitconfig.tmpl
+rmdir git
+```
+
+Edit `dot_gitconfig.tmpl` to use template variable for email:
+
+```
+[user]
+	name = Sanjeev Suresh
+	email = {{ .email }}
+[credential "https://github.com"]
+	helper =
+	helper = !/usr/bin/env gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/usr/bin/env gh auth git-credential
+```
+
+**Step 2: Create dot_zshrc.tmpl**
+
+Move and convert `zsh/zshrc`:
+
+```bash
+git mv zsh/zshrc dot_zshrc.tmpl
+rmdir zsh
+```
+
+Edit `dot_zshrc.tmpl`:
+
+```
+export PATH="$HOME/.local/bin:$PATH"
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Homebrew (macOS only)
+if [ -f /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{- end }}
+
+# Oh My Zsh
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME=""  # Disabled — Starship handles the prompt
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+source "$ZSH/oh-my-zsh.sh"
+
+# Aliases
+[ -f ~/.aliases ] && source ~/.aliases
+
+# 1Password service account token (not in repo — created manually per machine)
+[ -f "$HOME/.config/dotfiles/.env" ] && source "$HOME/.config/dotfiles/.env"
+
+# Secrets (generated by chezmoi from 1Password)
+[ -f "$HOME/.config/dotfiles/secrets.sh" ] && source "$HOME/.config/dotfiles/secrets.sh"
+
+# mise
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
+# Starship prompt (must be last)
+eval "$(starship init zsh)"
+```
+
+**Step 3: Verify templates render**
+
+Run:
+```bash
+chezmoi cat ~/.gitconfig
+chezmoi cat ~/.zshrc
+```
+Expected: Rendered output with email filled in, OS-conditional blocks resolved.
+
+**Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "Migrate gitconfig and zshrc to chezmoi templates"
+```
+
+---
+
+### Task 6: Migrate Claude Code config to dot_claude/
+
+**Files:**
+- Rename: `claude/settings.json` → `dot_claude/settings.json.tmpl`
+- Rename: `claude/hooks/notify.sh` → `dot_claude/hooks/executable_notify.sh`
+- Rename: `claude/hooks/ntfy-subscriber.sh` → `dot_claude/hooks/executable_ntfy-subscriber.sh`
+- Rename: `claude/statusline.sh` → `dot_claude/executable_statusline.sh`
+- Create: `dot_claude/CLAUDE.md` (global everyday instructions)
+- Handle: `claude/com.sanjeev.ntfy-subscriber.plist` → `private_Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist.tmpl`
+
+**Step 1: Rename claude/ to dot_claude/**
+
+```bash
+git mv claude/settings.json dot_claude/settings.json.tmpl
+git mv claude/hooks/notify.sh dot_claude/hooks/executable_notify.sh
+git mv claude/hooks/ntfy-subscriber.sh dot_claude/hooks/executable_ntfy-subscriber.sh
+git mv claude/statusline.sh dot_claude/executable_statusline.sh
+```
+
+Note: `dot_claude/` directory may need to be created first if git mv doesn't auto-create it. The `claude/` directory already exists so chezmoi prefix `dot_claude/` maps to `~/.claude/`.
+
+**Step 2: Convert settings.json to a template**
+
+Edit `dot_claude/settings.json.tmpl` — keep existing content but the file is now a template. For now, keep it identical across machines. Machine-specific differences can be added later.
+
+Wrap the entire content in a template that outputs valid JSON:
+
+```
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(pnpm *)",
+      "Bash(yarn *)",
+      "Bash(bun *)",
+      "Bash(make *)",
+      "Bash(cargo *)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "Task"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Stop|AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/notify.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "compound-engineering@compound-engineering": true,
+    "compound-engineering@every-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "compound-engineering": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-engineering-plugin"
+      }
+    },
+    "every-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-engineering-plugin"
+      }
+    }
+  }
+}
+```
+
+**Step 3: Move LaunchAgent plist to private_Library/**
+
+```bash
+mkdir -p private_Library/LaunchAgents
+git mv claude/com.sanjeev.ntfy-subscriber.plist private_Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist.tmpl
+```
+
+Edit `private_Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist.tmpl` to template the home dir:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sanjeev.ntfy-subscriber</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>exec ~/.claude/hooks/ntfy-subscriber.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/ntfy-subscriber.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/ntfy-subscriber.err</string>
+</dict>
+</plist>
+```
+
+**Step 4: Create global CLAUDE.md**
+
+Create `dot_claude/CLAUDE.md` with everyday Claude Code instructions (separate from the repo's CLAUDE.md):
+
+```markdown
+# Global Instructions
+
+Challenge my assumptions. Be extremely concise.
+```
+
+(You can expand this later. The point is the file exists and deploys to `~/.claude/CLAUDE.md`.)
+
+**Step 5: Clean up old claude/ directory**
+
+```bash
+rmdir claude/hooks claude 2>/dev/null || true
+```
+
+**Step 6: Verify chezmoi sees Claude files**
+
+Run:
+```bash
+chezmoi managed --include=files | grep claude
+```
+Expected: Lists `.claude/settings.json`, `.claude/hooks/notify.sh`, `.claude/hooks/ntfy-subscriber.sh`, `.claude/statusline.sh`, `.claude/CLAUDE.md`.
+
+**Step 7: Commit**
+
+```bash
+git add -A
+git commit -m "Migrate Claude Code config to chezmoi dot_claude/ structure"
+```
+
+---
+
+### Task 7: Add Codex config
+
+**Files:**
+- Create: `dot_codex/config.toml`
+- Create: `dot_codex/AGENTS.md`
+
+**Step 1: Create Codex config directory and files**
+
+Create `dot_codex/config.toml`:
+
+```toml
+# Codex CLI configuration
+# See: https://developers.openai.com/codex/config-reference/
+```
+
+Create `dot_codex/AGENTS.md`:
+
+```markdown
+# Global Instructions
+
+Challenge my assumptions. Be extremely concise.
+```
+
+**Step 2: Verify chezmoi sees Codex files**
+
+Run:
+```bash
+chezmoi managed --include=files | grep codex
+```
+Expected: Lists `.codex/config.toml`, `.codex/AGENTS.md`.
+
+**Step 3: Commit**
+
+```bash
+git add dot_codex/
+git commit -m "Add Codex CLI config directory"
+```
+
+---
+
+### Task 8: Add mise global config
+
+**Files:**
+- Create: `dot_config/mise/config.toml`
+
+**Step 1: Create mise config**
+
+```bash
+mkdir -p dot_config/mise
+```
+
+Create `dot_config/mise/config.toml`:
+
+```toml
+[tools]
+node = "lts"
+python = "3.12"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "python"]
+```
+
+**Step 2: Verify chezmoi sees it**
+
+Run:
+```bash
+chezmoi managed --include=files | grep mise
+```
+Expected: Lists `.config/mise/config.toml`.
+
+**Step 3: Commit**
+
+```bash
+git add dot_config/mise/
+git commit -m "Add mise global config for Node and Python"
+```
+
+---
+
+### Task 9: Create chezmoi install scripts (run_once_before)
+
+**Files:**
+- Create: `.chezmoiscripts/run_once_before_01-install-mise.sh.tmpl`
+- Create: `.chezmoiscripts/run_once_before_02-install-packages.sh.tmpl`
+
+**Step 1: Create .chezmoiscripts directory**
+
+```bash
+mkdir -p .chezmoiscripts
+```
+
+**Step 2: Write mise install script**
+
+Create `.chezmoiscripts/run_once_before_01-install-mise.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS: install Homebrew if missing, then mise
+if ! command -v brew &>/dev/null; then
+  echo "==> Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+if ! command -v mise &>/dev/null; then
+  echo "==> Installing mise..."
+  brew install mise
+fi
+{{ else -}}
+# Linux: install mise via installer
+if ! command -v mise &>/dev/null; then
+  echo "==> Installing mise..."
+  curl https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+{{ end -}}
+
+echo "==> mise $(mise --version) installed"
+```
+
+**Step 3: Write package install script**
+
+Create `.chezmoiscripts/run_once_before_02-install-packages.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .chezmoi.os "darwin" -}}
+echo "==> Installing macOS packages via Homebrew..."
+brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide
+brew install MisterTea/et/et
+brew install --cask iterm2
+brew install --cask font-jetbrains-mono-nerd-font
+brew install --cask 1password-cli
+
+echo "==> Configuring iTerm2..."
+ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+if [ -f "$ITERM_PLIST" ]; then
+  /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' 'JetBrainsMonoNF-Regular 13'" \
+    "$ITERM_PLIST" 2>/dev/null || true
+  defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 2
+fi
+
+{{ else -}}
+echo "==> Installing Linux packages..."
+apt-get update
+apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf delta zoxide
+
+# Eternal Terminal
+if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
+  echo "==> Adding Eternal Terminal PPA..."
+  add-apt-repository -y ppa:jgmath2000/et
+  apt-get update
+fi
+apt-get install -y et
+
+# 1Password CLI
+if ! command -v op &>/dev/null; then
+  echo "==> Installing 1Password CLI..."
+  curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+    tee /etc/apt/sources.list.d/1password.list
+  mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+  curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+    tee /etc/debsig/policies/AC2D62742012EA22/1password.pol > /dev/null
+  mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22/
+  curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+  apt-get update && apt-get install -y 1password-cli
+fi
+
+# Starship
+if ! command -v starship &>/dev/null; then
+  echo "==> Installing Starship..."
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
+fi
+
+{{ end -}}
+
+# Oh My Zsh (both platforms)
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "==> Installing Oh My Zsh..."
+  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+  git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
+# Set zsh as default shell
+if [ "$(basename "$SHELL")" != "zsh" ]; then
+  echo "==> Setting zsh as default shell..."
+  chsh -s "$(which zsh)"
+fi
+
+echo "==> Package installation complete"
+```
+
+**Step 4: Verify scripts parse**
+
+Run:
+```bash
+chezmoi execute-template < .chezmoiscripts/run_once_before_01-install-mise.sh.tmpl
+chezmoi execute-template < .chezmoiscripts/run_once_before_02-install-packages.sh.tmpl
+```
+Expected: Rendered bash scripts with the correct OS branch.
+
+**Step 5: Commit**
+
+```bash
+git add .chezmoiscripts/
+git commit -m "Add chezmoi install scripts for mise and packages"
+```
+
+---
+
+### Task 10: Create chezmoi after-scripts (mise install, Claude, secrets)
+
+**Files:**
+- Create: `.chezmoiscripts/run_onchange_after_mise-install.sh.tmpl`
+- Create: `.chezmoiscripts/run_once_after_install-claude-code.sh.tmpl`
+- Create: `.chezmoiscripts/run_once_after_install-claude-plugins.sh.tmpl`
+- Create: `.chezmoiscripts/run_once_after_cache-secrets.sh.tmpl`
+
+**Step 1: Write mise install script (re-runs when config changes)**
+
+Create `.chezmoiscripts/run_onchange_after_mise-install.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# mise config hash: {{ include "dot_config/mise/config.toml" | sha256sum }}
+
+echo "==> Installing mise tools..."
+export PATH="$HOME/.local/bin:$PATH"
+mise install -y
+echo "==> mise tools installed"
+```
+
+**Step 2: Write Claude Code install script**
+
+Create `.chezmoiscripts/run_once_after_install-claude-code.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Installing/updating Claude Code..."
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+**Step 3: Write Claude Code plugins script**
+
+Create `.chezmoiscripts/run_once_after_install-claude-plugins.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v claude &>/dev/null; then
+  echo "==> Installing Claude Code plugins..."
+  claude plugin marketplace add obra/superpowers-marketplace 2>/dev/null || true
+  claude plugin marketplace add EveryInc/compound-engineering-plugin 2>/dev/null || true
+  claude plugin install superpowers@superpowers-marketplace
+  claude plugin install compound-engineering@every-marketplace
+else
+  echo "    Skipping Claude plugins (claude not found in PATH)"
+fi
+```
+
+**Step 4: Write secrets caching script**
+
+Create `.chezmoiscripts/run_once_after_cache-secrets.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if ne .op_token "" -}}
+export OP_SERVICE_ACCOUNT_TOKEN={{ .op_token | quote }}
+
+# Save token for shell sessions
+install -d -m 700 "$HOME/.config/dotfiles"
+(
+  umask 077
+  printf 'export OP_SERVICE_ACCOUNT_TOKEN=%q\n' "$OP_SERVICE_ACCOUNT_TOKEN" > "$HOME/.config/dotfiles/.env"
+)
+
+if command -v op &>/dev/null; then
+  echo "==> Caching secrets from 1Password..."
+  (
+    umask 077
+    SECRETS_FILE="$HOME/.config/dotfiles/secrets.sh"
+    : > "$SECRETS_FILE"
+
+    NTFY_TOPIC_VAL="$(op read 'op://Dotfiles/ntfy-topic/credential' --no-newline 2>/dev/null)" && {
+      printf 'export NTFY_TOPIC=%q\n' "$NTFY_TOPIC_VAL" >> "$SECRETS_FILE"
+    } || echo "    WARNING: Failed to read NTFY_TOPIC from 1Password."
+
+    OPENROUTER_API_KEY_VAL="$(op read 'op://Dotfiles/openrouter-api-key/credential' --no-newline 2>/dev/null)" && {
+      printf 'export OPENROUTER_API_KEY=%q\n' "$OPENROUTER_API_KEY_VAL" >> "$SECRETS_FILE"
+    } || echo "    WARNING: Failed to read OPENROUTER_API_KEY from 1Password."
+
+    echo "    Secrets cached to ~/.config/dotfiles/secrets.sh"
+  )
+else
+  echo "    NOTE: op CLI not found. Skipping secret caching."
+fi
+{{ else -}}
+echo "    NOTE: No 1Password token provided. Skipping secret caching."
+echo "    To add later: chezmoi init"
+{{ end -}}
+```
+
+**Step 5: Verify templates render**
+
+Run:
+```bash
+chezmoi execute-template < .chezmoiscripts/run_onchange_after_mise-install.sh.tmpl
+chezmoi execute-template < .chezmoiscripts/run_once_after_cache-secrets.sh.tmpl
+```
+Expected: Rendered bash scripts.
+
+**Step 6: Commit**
+
+```bash
+git add .chezmoiscripts/
+git commit -m "Add chezmoi after-scripts for mise, Claude Code, and secrets"
+```
+
+---
+
+### Task 11: Add LaunchAgent loading to chezmoi
+
+**Files:**
+- Create: `.chezmoiscripts/run_once_after_load-launchagent.sh.tmpl`
+
+**Step 1: Write LaunchAgent loader (macOS only)**
+
+Create `.chezmoiscripts/run_once_after_load-launchagent.sh.tmpl`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .chezmoi.os "darwin" -}}
+echo "==> Loading ntfy-subscriber LaunchAgent..."
+launchctl bootout gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist" 2>/dev/null || true
+launchctl bootstrap gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"
+echo "    LaunchAgent loaded"
+{{ else -}}
+# No LaunchAgent on Linux
+{{ end -}}
+```
+
+**Step 2: Commit**
+
+```bash
+git add .chezmoiscripts/run_once_after_load-launchagent.sh.tmpl
+git commit -m "Add chezmoi script to load ntfy LaunchAgent on macOS"
+```
+
+---
+
+### Task 12: Remove bootstrap.sh and update CLAUDE.md
+
+**Files:**
+- Delete: `bootstrap.sh`
+- Update: `CLAUDE.md` (repo-level instructions)
+- Update: `README.md`
+
+**Step 1: Delete bootstrap.sh**
+
+```bash
+git rm bootstrap.sh
+```
+
+**Step 2: Update CLAUDE.md for the new structure**
+
+Rewrite `CLAUDE.md` to reflect chezmoi conventions. This is the repo-level file — instructions for agents working on the dotfiles repo itself:
+
+```markdown
+# Dotfiles
+
+Cross-platform (macOS + Linux) dotfiles managed by chezmoi with mise for language runtimes and 1Password for secrets.
+
+## Repo Layout
+
+This repo root IS the chezmoi source directory. Files use chezmoi naming conventions:
+
+| Prefix/Suffix | Effect |
+|---------------|--------|
+| `dot_` | Deploys as `.filename` in `$HOME` |
+| `executable_` | Sets chmod +x |
+| `private_` | Sets chmod 600/700 |
+| `.tmpl` | Rendered as Go template |
+
+### Key directories
+
+| Source | Deploys to | Purpose |
+|--------|-----------|---------|
+| `dot_claude/` | `~/.claude/` | Claude Code config, hooks, statusline |
+| `dot_codex/` | `~/.codex/` | Codex CLI config |
+| `dot_config/mise/` | `~/.config/mise/` | mise tool versions (Node, Python) |
+| `dot_config/starship.toml` | `~/.config/starship.toml` | Prompt theme |
+| `.chezmoiscripts/` | (not deployed) | Install scripts run by chezmoi |
+| `docs/` | (not deployed) | Plans, brainstorms |
+
+## Conventions
+
+- **chezmoi naming.** All deployed files use chezmoi prefixes (`dot_`, `executable_`, `private_`) and `.tmpl` suffix for templates.
+- **Templates for OS differences.** Use `{{ .chezmoi.os }}` and `{{ .machine_type }}` in `.tmpl` files.
+- **One directory per agent.** Each AI agent gets its own `dot_` directory.
+- **Scripts in .chezmoiscripts/.** Package installs, tool setup, and post-apply actions.
+- **Idempotent.** Scripts use `run_once_` or `run_onchange_` prefixes. Guard checks (`command -v`, `[ -d ... ]`).
+- **1Password for secrets.** No encrypted files in repo. Secrets fetched at apply time.
+
+## Adding a New Tool
+
+1. Add config file with chezmoi naming (e.g., `dot_config/toolname/config.toml`)
+2. Add install commands to `.chezmoiscripts/run_once_before_02-install-packages.sh.tmpl`
+3. Run `chezmoi apply` to test
+
+## Adding a New Agent
+
+1. Create `dot_agentname/` directory
+2. Add config files inside it
+3. Add install script to `.chezmoiscripts/` if needed
+4. Update `.chezmoiignore` if any files are OS-specific
+
+## Bootstrap
+
+```bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply Sanjeev-S
+```
+
+## Update
+
+```bash
+chezmoi apply
+```
+```
+
+**Step 3: Commit**
+
+```bash
+git add CLAUDE.md
+git add -A
+git commit -m "Remove bootstrap.sh, update CLAUDE.md for chezmoi structure"
+```
+
+---
+
+### Task 13: Test on Mac (dry run then real apply)
+
+**Files:**
+- None (testing)
+
+**Step 1: Dry run**
+
+Run:
+```bash
+chezmoi diff
+```
+Expected: Shows what chezmoi would change. Review carefully — it should show new files being created and existing files being updated.
+
+**Step 2: Backup current dotfiles**
+
+Run:
+```bash
+cp ~/.zshrc ~/.zshrc.bak
+cp ~/.gitconfig ~/.gitconfig.bak
+cp ~/.tmux.conf ~/.tmux.conf.bak
+```
+
+**Step 3: Initialize chezmoi pointing at local repo**
+
+Run:
+```bash
+chezmoi init --source ~/sanjeev/dotfiles
+```
+Answer the prompts (machine_type: mac-personal, OP token).
+
+**Step 4: Apply**
+
+Run:
+```bash
+chezmoi apply -v
+```
+Expected: All files deployed. Review output for errors.
+
+**Step 5: Verify key files**
+
+Run:
+```bash
+ls -la ~/.claude/CLAUDE.md
+ls -la ~/.claude/settings.json
+ls -la ~/.claude/hooks/notify.sh
+ls -la ~/.config/mise/config.toml
+ls -la ~/.config/starship.toml
+ls -la ~/.codex/config.toml
+cat ~/.gitconfig | head -3
+```
+Expected: All files present (as regular files, not symlinks — chezmoi copies, not symlinks). Gitconfig shows correct email.
+
+**Step 6: Verify shell works**
+
+Open a new terminal tab. Verify:
+- Starship prompt loads
+- `mise ls` shows node and python
+- `claude --version` works
+
+---
+
+### Task 14: Move repo to ~/dotfiles
+
+**Files:**
+- None (filesystem move)
+
+**Step 1: Move the repo**
+
+Run:
+```bash
+mv ~/sanjeev/dotfiles ~/dotfiles
+```
+
+**Step 2: Re-init chezmoi with new source**
+
+Run:
+```bash
+chezmoi init --source ~/dotfiles
+```
+
+**Step 3: Verify chezmoi uses new path**
+
+Run:
+```bash
+chezmoi source-path
+```
+Expected: `/Users/sanjeevsuresh/dotfiles`
+
+**Step 4: Verify apply still works**
+
+Run:
+```bash
+chezmoi apply -v
+```
+Expected: No changes (everything already applied).
+
+---
+
+### Task 15: Test on a Linux VM
+
+**Files:**
+- None (remote testing)
+
+**Step 1: SSH into a Hetzner VM**
+
+```bash
+ssh root@hetzner-default
+```
+
+**Step 2: Run the one-liner bootstrap**
+
+```bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --source ~/dotfiles --apply Sanjeev-S
+```
+
+Answer prompts: machine_type = linux-server, OP token (paste or skip).
+
+**Step 3: Verify**
+
+```bash
+ls -la ~/.claude/settings.json
+ls -la ~/.config/mise/config.toml
+ls -la ~/.zshrc
+cat ~/.gitconfig | head -3
+mise ls
+claude --version
+```
+
+**Step 4: Verify no macOS files leaked**
+
+```bash
+ls ~/Library/LaunchAgents/ 2>/dev/null
+```
+Expected: Directory doesn't exist or plist is not present.
