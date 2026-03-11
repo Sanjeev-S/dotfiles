@@ -1,26 +1,21 @@
 # dotfiles
 
-Bootstrap a fresh server or Mac with Claude Code, mosh, Eternal Terminal, tmux, native notifications, and a modern zsh setup (Oh My Zsh + Starship + plugins).
+Cross-platform (macOS + Linux) dotfiles managed by [chezmoi](https://www.chezmoi.io/) with [mise](https://mise.jdx.dev/) for language runtimes and [1Password](https://developer.1password.com/docs/cli/) for secrets.
 
-Config files live in topic directories and get symlinked into `$HOME` — edits in either location propagate automatically.
-
-## Setup (Linux server)
+## Bootstrap
 
 ```bash
-ssh hetzner-default
+# First time only: save 1Password service account token
+bash <(curl -fsSL https://raw.githubusercontent.com/Sanjeev-S/dotfiles/main/setup-op-token.sh)
 
-git clone https://github.com/Sanjeev-S/dotfiles.git ~/dotfiles
-bash ~/dotfiles/bootstrap.sh
-
-# Authenticate (opens a URL — paste code back)
-claude
+# Then init chezmoi (prompts for machine type + 1Password token)
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply Sanjeev-S
 ```
 
-## Setup (Mac)
+## Update
 
 ```bash
-git clone https://github.com/Sanjeev-S/dotfiles.git ~/dotfiles
-bash ~/dotfiles/bootstrap.sh
+chezmoi apply
 ```
 
 ## Connecting
@@ -40,43 +35,81 @@ mosh root@hetzner-default -- tmux attach -t main
 ssh hetzner-default -t 'tmux new-session -A -s main'
 ```
 
+## What's included
+
+| Tool | Purpose | Platform |
+|------|---------|----------|
+| Claude Code | AI coding assistant + plugins (superpowers, compound-engineering) | Both |
+| Codex | OpenAI Codex CLI | Both |
+| mise | Language runtime manager (Node, Python) | Both |
+| mosh | Mobile-friendly SSH (UDP, roaming) | Both |
+| Eternal Terminal | Auto-reconnecting remote shell | Both |
+| tmux | Terminal multiplexer (persistent sessions) | Both |
+| Oh My Zsh | Zsh plugin framework | Both |
+| Starship | Fast, customizable prompt | Both |
+| zsh-autosuggestions | Fish-like command suggestions | Both |
+| zsh-syntax-highlighting | Real-time command highlighting | Both |
+| ripgrep | Fast recursive search (`rg`) | Both |
+| bat | `cat` with syntax highlighting | Both |
+| fd | Fast `find` alternative | Both |
+| fzf | Fuzzy finder | Both |
+| delta | Git diff pager | Both |
+| zoxide | Smarter `cd` | Both |
+| gh | GitHub CLI | Both |
+| 1password-cli | Secret management (`op`) | Both |
+| ntfy hooks | Push notifications for Claude events | Both |
+| ntfy subscriber | Native macOS notifications from ntfy | macOS |
+| terminal-notifier | macOS Notification Center integration | macOS |
+| JetBrains Mono NF | Nerd Font with icon support | macOS |
+| iTerm2 | Terminal emulator | macOS |
+
 ## Notifications
 
 Claude Code hooks send push notifications via [ntfy.sh](https://ntfy.sh) when:
 - **Claude finishes** a task (Stop)
 - **Claude needs input** (AskUserQuestion) — high priority
 
-On macOS, a LaunchAgent subscribes to the ntfy topic and shows native Notification Center alerts via `terminal-notifier`. The subscriber starts automatically at login and is installed by `bootstrap.sh`.
+On macOS, a LaunchAgent subscribes to the ntfy topic and shows native Notification Center alerts via `terminal-notifier`. The subscriber starts automatically at login. An idle-detection wrapper pauses notifications when the terminal is active.
 
-## What's included
+## Secrets
 
-| Tool | Purpose | Platform |
-|------|---------|----------|
-| Claude Code | AI coding assistant | Linux |
-| mosh | Mobile-friendly SSH (UDP, roaming) | Both |
-| Eternal Terminal | Auto-reconnecting remote shell | Both |
-| tmux | Terminal multiplexer (persistent sessions) | Both |
-| ntfy hooks | Push notifications for Claude events | Both |
-| ntfy subscriber | Native macOS notifications from ntfy | macOS |
-| terminal-notifier | macOS Notification Center integration | macOS |
-| Oh My Zsh | Zsh plugin framework | macOS |
-| Starship | Fast, customizable prompt | macOS |
-| zsh-autosuggestions | Fish-like command suggestions | macOS |
-| zsh-syntax-highlighting | Real-time command highlighting | macOS |
-| JetBrains Mono NF | Nerd Font with icon support | macOS |
-| iTerm2 | Terminal emulator | macOS |
+Secrets are fetched from 1Password at `chezmoi apply` time — nothing is stored in the repo.
+
+1. Run `setup-op-token.sh` to save your 1Password service account token to `~/.config/dotfiles/.env`
+2. `chezmoi init` prompts for the token and stores it in chezmoi's config
+3. Templates use `{{ onepasswordRead ... }}` to inject secrets during apply
+
+Machine types (`mac-personal`, `linux-server`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
 ## Repo structure
 
 ```
-.gitignore                # .DS_Store, *.swp, settings.local.json
-bootstrap.sh              # single entry point (detects OS)
-tmux/tmux.conf            # → ~/.tmux.conf (both)
-claude/hooks/notify.sh    # → ~/.claude/hooks/notify.sh (both)
-claude/hooks/ntfy-subscriber.sh  # → ~/.claude/hooks/ntfy-subscriber.sh (both)
-claude/com.sanjeev.ntfy-subscriber.plist  # → ~/Library/LaunchAgents/... (macOS)
-claude/settings.json      # → ~/.claude/settings.json (both)
-shell/aliases.sh          # → ~/.aliases (macOS)
-zsh/zshrc                 # → ~/.zshrc (macOS)
-starship/starship.toml    # → ~/.config/starship.toml (macOS)
+.chezmoi.toml.tmpl              # chezmoi config (machine_type, op_token prompts)
+.chezmoiignore                  # files not deployed to $HOME
+.chezmoiscripts/
+  run_once_before_01-install-mise.sh.tmpl
+  run_once_before_02-install-packages.sh.tmpl
+  run_once_after_install-claude-code.sh.tmpl
+  run_once_after_install-claude-plugins.sh.tmpl
+  run_once_after_load-launchagent.sh.tmpl
+  run_once_after_cache-secrets.sh.tmpl
+  run_onchange_after_mise-install.sh.tmpl
+dot_aliases                     # → ~/.aliases
+dot_claude/                     # → ~/.claude/
+  hooks/                        #   notify.sh, ntfy-subscriber.sh
+  settings.json.tmpl            #   Claude Code settings
+  CLAUDE.md                     #   Global agent instructions
+  executable_statusline.sh      #   Claude Code statusline
+dot_codex/                      # → ~/.codex/
+  config.toml.tmpl              #   Codex CLI config
+dot_config/
+  mise/config.toml              # → ~/.config/mise/config.toml
+  starship.toml                 # → ~/.config/starship.toml
+dot_gitconfig.tmpl              # → ~/.gitconfig
+dot_tmux.conf                   # → ~/.tmux.conf
+dot_zshrc.tmpl                  # → ~/.zshrc
+private_Library/                # → ~/Library/ (macOS only)
+  LaunchAgents/                 #   ntfy subscriber plist
+setup-op-token.sh               # 1Password token setup (not deployed)
+docs/                           # Plans, brainstorms (not deployed)
 ```
