@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v node &>/dev/null; then
+  echo "==> Installing Codex CLI..."
+  npm install -g @openai/codex
+else
+  echo "    Skipping Codex (node not found)"
+fi
