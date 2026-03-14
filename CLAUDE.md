@@ -36,7 +36,7 @@ This repo root IS the chezmoi source directory. Files use chezmoi naming convent
 ## Adding a New Tool
 
 1. Add config file with chezmoi naming (e.g., `dot_config/toolname/config.toml`)
-2. Add install commands to `.chezmoiscripts/run_once_before_02-install-packages.sh.tmpl`
+2. Add install commands to `.chezmoiscripts/run_onchange_before_02-install-packages.sh.tmpl`
 3. Run `chezmoi apply` to test
 
 ## Adding a New Agent

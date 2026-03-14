@@ -27,5 +27,13 @@ if command -v mise &>/dev/null; then
   eval "$(mise activate zsh)"
 fi
 
+# Zoxide
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 # Starship prompt (must be last)
 eval "$(starship init zsh)"
