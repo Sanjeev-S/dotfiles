@@ -9,7 +9,7 @@ Cross-platform (macOS + Linux) dotfiles managed by [chezmoi](https://www.chezmoi
 bash <(curl -fsSL https://raw.githubusercontent.com/Sanjeev-S/dotfiles/main/setup-op-token.sh)
 
 # Then init chezmoi (prompts for machine type + 1Password token)
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply Sanjeev-S
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanjeev-S
 ```
 
 ## Update

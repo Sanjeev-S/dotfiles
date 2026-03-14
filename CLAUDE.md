@@ -49,7 +49,7 @@ This repo root IS the chezmoi source directory. Files use chezmoi naming convent
 ## Bootstrap
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply Sanjeev-S
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanjeev-S
 ```
 
 ## Update
