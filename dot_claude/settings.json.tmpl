@@ -1,5 +1,18 @@
 {
   "permissions": {
+{{- if eq .machine_type "linux-server" }}
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "Task"
+    ],
+    "deny": []
+{{- else }}
     "allow": [
       "Bash(git *)",
       "Bash(npm *)",
@@ -20,6 +33,7 @@
       "Bash(rm -rf *)",
       "Bash(sudo *)"
     ]
+{{- end }}
   },
   "hooks": {
     "PostToolUse": [
