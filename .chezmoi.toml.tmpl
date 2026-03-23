@@ -1,4 +1,4 @@
-{{- $machine_types := list "mac-personal" "linux-server" -}}
+{{- $machine_types := list "mac-personal" "mac-dev" "linux-dev" -}}
 {{- $machine_type := promptChoiceOnce . "machine_type" "Machine type" $machine_types -}}
 {{- $op_token := promptStringOnce . "op_token" "1Password service account token (leave blank to skip)" -}}
 

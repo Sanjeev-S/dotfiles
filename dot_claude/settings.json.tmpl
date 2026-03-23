@@ -1,6 +1,6 @@
 {
   "permissions": {
-{{- if eq .machine_type "linux-server" }}
+{{- if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") }}
     "allow": [
       "Bash",
       "Read",

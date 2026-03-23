@@ -1,7 +1,7 @@
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 
-{{ if eq .machine_type "mac-personal" -}}
+{{ if or (eq .machine_type "mac-personal") (eq .machine_type "mac-dev") -}}
 [projects."{{ .chezmoi.homeDir }}/sanjeev"]
 trust_level = "trusted"
 
