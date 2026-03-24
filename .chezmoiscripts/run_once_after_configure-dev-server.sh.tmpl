@@ -2,6 +2,12 @@
 set -euo pipefail
 
 {{ if and (eq .chezmoi.os "darwin") (eq .machine_type "mac-dev") -}}
+echo "==> Configuring macOS dev server..."
+sudo pmset -a sleep 0
+sudo pmset -a disksleep 0
+sudo pmset -a disablesleep 1
+sudo pmset -a autorestart 1
+
 echo "==> Starting Eternal Terminal daemon..."
 sudo brew services start et
 
