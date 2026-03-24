@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if and (eq .chezmoi.os "darwin") (eq .machine_type "mac-dev") -}}
+echo "==> Starting Eternal Terminal daemon..."
+sudo brew services start et
+
+{{ else if and (eq .chezmoi.os "linux") (eq .machine_type "linux-dev") -}}
+echo "==> Starting Eternal Terminal daemon..."
+sudo systemctl enable --now et
+
+{{ end -}}
