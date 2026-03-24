@@ -3,7 +3,7 @@ set -euo pipefail
 
 {{ if eq .chezmoi.os "darwin" -}}
 echo "==> Installing macOS packages via Homebrew..."
-brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide
+brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide tmux
 brew install MisterTea/et/et
 brew install --cask iterm2
 brew install --cask font-jetbrains-mono-nerd-font
