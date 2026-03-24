@@ -5,6 +5,7 @@ set -euo pipefail
 echo "==> Installing macOS packages via Homebrew..."
 brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide
 brew install MisterTea/et/et
+brew services stop et 2>/dev/null || true
 brew services start et
 brew install --cask iterm2
 brew install --cask font-jetbrains-mono-nerd-font
