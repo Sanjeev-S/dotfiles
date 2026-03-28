@@ -6,6 +6,11 @@ setup-op-token.sh
 bootstrap.sh
 .gitignore
 
+{{ if ne .machine_type "mac-personal" }}
+# mac-personal only
+private_dot_ssh/**
+{{ end }}
+
 {{ if ne .chezmoi.os "darwin" }}
 # macOS-only files
 private_Library/**
