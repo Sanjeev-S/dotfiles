@@ -73,13 +73,14 @@ On macOS, a LaunchAgent subscribes to the ntfy topic and shows native Notificati
 
 ## Secrets
 
-Secrets are fetched from 1Password at `chezmoi apply` time — nothing is stored in the repo.
+Secrets are fetched from 1Password via `op read` — nothing is stored in the repo.
 
 1. Run `setup-op-token.sh` to save your 1Password service account token to `~/.config/dotfiles/.env`
 2. `chezmoi init` prompts for the token and stores it in chezmoi's config
-3. Templates use `{{ onepasswordRead ... }}` to inject secrets during apply
+3. `chezmoi apply` caches secrets to `~/.config/dotfiles/secrets.sh` on first run
+4. To refresh after a secret rotation: `secrets-refresh`
 
-Machine types (`mac-personal`, `linux-server`) drive per-machine config differences via `{{ .machine_type }}` in templates.
+Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
 ## Repo structure
 
@@ -88,12 +89,13 @@ Machine types (`mac-personal`, `linux-server`) drive per-machine config differen
 .chezmoiignore                  # files not deployed to $HOME
 .chezmoiscripts/
   run_once_before_01-install-mise.sh.tmpl
-  run_once_before_02-install-packages.sh.tmpl
-  run_once_after_install-claude-code.sh.tmpl
-  run_once_after_install-claude-plugins.sh.tmpl
-  run_once_after_load-launchagent.sh.tmpl
-  run_once_after_cache-secrets.sh.tmpl
-  run_onchange_after_mise-install.sh.tmpl
+  run_onchange_before_02-install-packages.sh.tmpl
+  run_onchange_after_01-install-mise-tools.sh.tmpl
+  run_once_after_02-cache-secrets.sh.tmpl
+  run_once_after_03-install-claude.sh.tmpl
+  run_onchange_after_04-update-codex.sh.tmpl
+  run_once_after_05-configure-dev-server.sh.tmpl
+  run_once_after_06-load-launchagent.sh.tmpl
 dot_aliases                     # → ~/.aliases
 dot_claude/                     # → ~/.claude/
   hooks/                        #   notify.sh, ntfy-subscriber.sh
@@ -106,6 +108,8 @@ dot_config/
   mise/config.toml              # → ~/.config/mise/config.toml
   starship.toml                 # → ~/.config/starship.toml
 dot_gitconfig.tmpl              # → ~/.gitconfig
+dot_local/bin/
+  executable_secrets-refresh    # → ~/.local/bin/secrets-refresh
 dot_tmux.conf                   # → ~/.tmux.conf
 dot_zshrc.tmpl                  # → ~/.zshrc
 private_Library/                # → ~/Library/ (macOS only)

@@ -21,6 +21,7 @@ This repo root IS the chezmoi source directory. Files use chezmoi naming convent
 | `dot_codex/` | `~/.codex/` | Codex CLI config |
 | `dot_config/mise/` | `~/.config/mise/` | mise tool versions (Node, Python) |
 | `dot_config/starship.toml` | `~/.config/starship.toml` | Prompt theme |
+| `dot_local/bin/` | `~/.local/bin/` | User scripts (secrets-refresh) |
 | `.chezmoiscripts/` | (not deployed) | Install scripts run by chezmoi |
 | `docs/` | (not deployed) | Plans, brainstorms |
 
