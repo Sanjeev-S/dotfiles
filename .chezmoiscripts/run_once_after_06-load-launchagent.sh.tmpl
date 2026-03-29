@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-{{ if eq .chezmoi.os "darwin" -}}
+{{ if eq .machine_type "mac-personal" -}}
 echo "==> Loading ntfy-subscriber LaunchAgent..."
 launchctl bootout gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist" 2>/dev/null || true
 launchctl bootstrap gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"

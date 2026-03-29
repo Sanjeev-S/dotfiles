@@ -11,7 +11,7 @@ bootstrap.sh
 private_dot_ssh/**
 {{ end }}
 
-{{ if ne .chezmoi.os "darwin" }}
-# macOS-only files
+{{ if ne .machine_type "mac-personal" }}
+# mac-personal only (ntfy LaunchAgent)
 private_Library/**
 {{ end }}
