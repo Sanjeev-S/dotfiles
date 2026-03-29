@@ -8,6 +8,5 @@ function hetzner-16g-connect() {
     kill $tunnel_pid 2>/dev/null
 }
 alias macmini-connect="et sanjeevsuresh@sanjeevs-mac-mini -c 'tmux -CC new-session -A -s main'"
-alias dotup="dotfiles-update"
 alias cc="claude"
 alias cx="codex"

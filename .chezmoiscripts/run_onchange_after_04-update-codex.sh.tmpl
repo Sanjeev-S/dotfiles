@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# today: {{ output "date" "+%Y-%m-%d" }}
+
 export PATH="$HOME/.local/bin:$PATH"
 
 if command -v node &>/dev/null; then
-  echo "==> Installing Codex CLI..."
+  echo "==> Updating Codex CLI..."
   npm install -g @openai/codex
 else
   echo "    Skipping Codex (node not found)"

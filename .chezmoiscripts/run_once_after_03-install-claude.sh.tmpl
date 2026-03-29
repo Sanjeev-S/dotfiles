@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "==> Installing Claude Code..."
+curl -fsSL https://claude.ai/install.sh | bash
+
 export PATH="$HOME/.local/bin:$PATH"
 
 if command -v claude &>/dev/null; then
