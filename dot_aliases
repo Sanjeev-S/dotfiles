@@ -1,6 +1,12 @@
 # Aliases
 alias hetzner-default-connect="et root@hetzner-default -c 'tmux -CC new-session -A -s main'"
-alias hetzner-16g-connect="et root@hetzner-16g -c 'tmux -CC new-session -A -s main'"
+alias hetzner-16g-tunnel="ssh -N hetzner-16g-tunnel"
+function hetzner-16g-connect() {
+    ssh -N hetzner-16g-tunnel &
+    local tunnel_pid=$!
+    et root@hetzner-16g -c 'tmux -CC new-session -A -s main'
+    kill $tunnel_pid 2>/dev/null
+}
 alias macmini-connect="et sanjeevsuresh@sanjeevs-mac-mini -c 'tmux -CC new-session -A -s main'"
 alias dotup="dotfiles-update"
 alias cc="claude"

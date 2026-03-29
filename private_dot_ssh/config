@@ -9,6 +9,16 @@ Host hetzner-default
     HostName 95.217.135.96
     User root
 
+Host hetzner-16g-tunnel
+    HostName 89.167.110.214
+    User root
+    LocalForward 3000 localhost:3000
+    LocalForward 4321 localhost:4321
+    LocalForward 5173 localhost:5173
+    LocalForward 8000 localhost:8000
+    ExitOnForwardFailure yes
+    RequestTTY no
+
 Host hetzner-16g
     HostName 89.167.110.214
     User root
