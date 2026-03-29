@@ -1,8 +1,18 @@
 {
   "permissions": {
 {{- if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") }}
-    "defaultMode": "bypassPermissions",
-    "allow": [],
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "mcp__playwright"
+    ],
     "deny": []
 {{- else }}
     "allow": [
