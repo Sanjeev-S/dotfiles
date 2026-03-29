@@ -16,6 +16,9 @@ Host hetzner-16g-tunnel
     LocalForward 4321 localhost:4321
     LocalForward 5173 localhost:5173
     LocalForward 8000 localhost:8000
+    LocalForward 8080 localhost:8080
+    LocalForward 8888 localhost:8888
+    LocalForward 9000 localhost:9000
     ExitOnForwardFailure yes
     RequestTTY no
 
