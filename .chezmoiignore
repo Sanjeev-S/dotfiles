@@ -2,7 +2,7 @@
 CLAUDE.md
 README.md
 docs/**
-setup-op-token.sh
+rotate-op-token.sh
 bootstrap.sh
 .gitignore
 

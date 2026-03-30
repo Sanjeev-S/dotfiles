@@ -5,8 +5,8 @@ Cross-platform (macOS + Linux) dotfiles managed by [chezmoi](https://www.chezmoi
 ## Bootstrap
 
 ```bash
-# First time only: save 1Password service account token
-bash <(curl -fsSL https://raw.githubusercontent.com/Sanjeev-S/dotfiles/main/setup-op-token.sh)
+# First time (or token rotation): set 1Password service account token
+bash <(curl -fsSL https://raw.githubusercontent.com/Sanjeev-S/dotfiles/main/rotate-op-token.sh)
 
 # Then init chezmoi (prompts for machine type + 1Password token)
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanjeev-S
@@ -75,10 +75,11 @@ On macOS, a LaunchAgent subscribes to the ntfy topic and shows native Notificati
 
 Secrets are fetched from 1Password via `op read` — nothing is stored in the repo.
 
-1. Run `setup-op-token.sh` to save your 1Password service account token to `~/.config/dotfiles/.env`
-2. `chezmoi init` prompts for the token and stores it in chezmoi's config
+1. Run `rotate-op-token.sh` to set your 1Password service account token (updates `.env`, `chezmoi.toml`, and re-caches secrets)
+2. `chezmoi init` also prompts for the token on first run
 3. `chezmoi apply` caches secrets to `~/.config/dotfiles/secrets.sh` on first run
-4. To refresh after a secret rotation: `secrets-refresh`
+4. To refresh secrets after a rotation in 1Password: `secrets-refresh`
+5. To rotate the SA token itself: `bash rotate-op-token.sh`
 
 Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
@@ -114,6 +115,6 @@ dot_tmux.conf                   # → ~/.tmux.conf
 dot_zshrc.tmpl                  # → ~/.zshrc
 private_Library/                # → ~/Library/ (macOS only)
   LaunchAgents/                 #   ntfy subscriber plist
-setup-op-token.sh               # 1Password token setup (not deployed)
+rotate-op-token.sh              # 1Password token rotation (not deployed)
 docs/                           # Plans, brainstorms (not deployed)
 ```
