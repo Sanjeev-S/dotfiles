@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Usage: bash rotate-op-token.sh
+#   or:  bash <(curl -fsSL https://raw.githubusercontent.com/Sanjeev-S/dotfiles/main/rotate-op-token.sh)
+#
 # Rotates the 1Password service account token everywhere:
 #   1. ~/.config/dotfiles/.env (sourced by shell)
 #   2. ~/.config/chezmoi/chezmoi.toml (used by chezmoi templates)
