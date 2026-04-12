@@ -3,7 +3,7 @@ model_reasoning_effort = "xhigh"
 
 {{ if or (eq .machine_type "linux-dev") -}}
 approval_policy = "never"
-sandbox = "danger-full-access"
+sandbox_mode = "danger-full-access"
 {{ else if or (eq .machine_type "mac-personal") (eq .machine_type "mac-dev") -}}
 [projects."{{ .chezmoi.homeDir }}/sanjeev"]
 trust_level = "trusted"
