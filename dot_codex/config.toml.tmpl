@@ -1,10 +1,13 @@
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 
-{{ if or (eq .machine_type "linux-dev") -}}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") -}}
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-{{ else if or (eq .machine_type "mac-personal") (eq .machine_type "mac-dev") -}}
+{{ else if eq .machine_type "mac-personal" -}}
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
 [projects."{{ .chezmoi.homeDir }}/sanjeev"]
 trust_level = "trusted"
 

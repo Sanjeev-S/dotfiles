@@ -14,6 +14,26 @@
       "mcp__playwright"
     ],
     "deny": []
+{{- else if eq .machine_type "mac-personal" }}
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "mcp__playwright"
+    ],
+    "deny": [
+      "Bash(rm -rf /)*",
+      "Bash(rm -rf ~)*",
+      "Bash(sudo *)",
+      "Bash(git push --force *)",
+      "Bash(git push * --force *)"
+    ]
 {{- else }}
     "allow": [
       "Bash(git *)",
