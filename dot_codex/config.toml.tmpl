@@ -1,13 +1,18 @@
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 
-{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") -}}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") -}}
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-{{ else if eq .machine_type "mac-personal" -}}
-approval_policy = "never"
-sandbox_mode = "danger-full-access"
+{{ end -}}
 
+[features]
+remote_connections = true
+
+[tui]
+status_line = ["model-with-reasoning", "current-dir", "context-used"]
+
+{{ if eq .machine_type "mac-personal" -}}
 [projects."{{ .chezmoi.homeDir }}/sanjeev"]
 trust_level = "trusted"
 
@@ -17,6 +22,3 @@ trust_level = "trusted"
 [projects."{{ .chezmoi.homeDir }}/dotfiles"]
 trust_level = "trusted"
 {{ end -}}
-
-[tui]
-status_line = ["model-with-reasoning", "current-dir", "context-used"]
