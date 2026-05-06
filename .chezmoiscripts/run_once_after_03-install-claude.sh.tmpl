@@ -4,7 +4,7 @@ set -euo pipefail
 echo "==> Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
 
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
 if command -v claude &>/dev/null; then
   echo "==> Installing Claude Code plugins..."
@@ -15,3 +15,63 @@ if command -v claude &>/dev/null; then
 else
   echo "    Skipping Claude plugins (claude not found in PATH)"
 fi
+
+# ── Non-marketplace skills (cloned directly into ~/.claude/skills) ──
+SKILLS_DIR="$HOME/.claude/skills"
+mkdir -p "$SKILLS_DIR"
+
+# gstack — Garry Tan's engineering team in slash commands
+GSTACK_DIR="$SKILLS_DIR/gstack"
+if [ ! -d "$GSTACK_DIR/.git" ]; then
+  echo "==> Cloning gstack..."
+  git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$GSTACK_DIR"
+else
+  echo "==> Updating gstack..."
+  git -C "$GSTACK_DIR" pull --ff-only --quiet || true
+fi
+if command -v bun &>/dev/null; then
+  (cd "$GSTACK_DIR" && ./setup -q --no-team)
+else
+  echo "    Skipping gstack ./setup (bun not found — re-run after mise installs bun)"
+fi
+
+# mattpocock/skills — curated skills from his plugin.json (no marketplace published)
+MP_REPO="$SKILLS_DIR/mattpocock-skills"
+if [ ! -d "$MP_REPO/.git" ]; then
+  echo "==> Cloning mattpocock/skills..."
+  git clone --single-branch --depth 1 https://github.com/mattpocock/skills.git "$MP_REPO"
+else
+  echo "==> Updating mattpocock/skills..."
+  git -C "$MP_REPO" pull --ff-only --quiet || true
+fi
+
+echo "==> Linking mattpocock skills..."
+MP_SKILLS=(
+  "engineering/diagnose"
+  "engineering/grill-with-docs"
+  "engineering/triage"
+  "engineering/improve-codebase-architecture"
+  "engineering/setup-matt-pocock-skills"
+  "engineering/tdd"
+  "engineering/to-issues"
+  "engineering/to-prd"
+  "engineering/zoom-out"
+  "engineering/prototype"
+  "productivity/caveman"
+  "productivity/grill-me"
+  "productivity/write-a-skill"
+)
+for path in "${MP_SKILLS[@]}"; do
+  name="$(basename "$path")"
+  src="$MP_REPO/skills/$path"
+  dest="$SKILLS_DIR/$name"
+  if [ -f "$src/SKILL.md" ]; then
+    if [ -L "$dest" ] || [ ! -e "$dest" ]; then
+      ln -sfn "$src" "$dest"
+    else
+      echo "    Skipping $name (target exists and is not a symlink)"
+    fi
+  else
+    echo "    Missing $src/SKILL.md — skipping $name"
+  fi
+done
