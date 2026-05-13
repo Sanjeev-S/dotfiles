@@ -1,0 +1,11 @@
+[Unit]
+Description=Run dotup hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+Unit=dotup.service
+
+[Install]
+WantedBy=timers.target

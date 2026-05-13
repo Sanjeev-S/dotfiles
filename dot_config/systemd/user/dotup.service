@@ -1,0 +1,9 @@
+[Unit]
+Description=Update dotfiles, Claude Code, and Codex CLI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/dotup
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin

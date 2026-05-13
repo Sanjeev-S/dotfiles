@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v codex &>/dev/null; then
+  echo "==> Codex already installed; updates handled by dotup"
+  exit 0
+fi
+
+if command -v npm &>/dev/null; then
+  echo "==> Installing Codex CLI..."
+  npm install -g @openai/codex
+else
+  echo "    Skipping Codex (npm not found)"
+fi

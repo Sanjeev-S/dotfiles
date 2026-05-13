@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Update dotfiles, Claude Code, and Codex CLI.
+# Runs hourly via launchd/systemd-user; no-ops if successful run < 24h ago.
+# Failure surfaces as a banner in zsh sessions; see ADR 0001.
+
+set -uo pipefail
+
+STATE_DIR="$HOME/.local/state/dotup"
+LAST_SUCCESS="$STATE_DIR/last-success"
+LAST_FAILURE="$STATE_DIR/last-failure"
+RUN_LOG="$STATE_DIR/last-run.log"
+
+mkdir -p "$STATE_DIR"
+
+force=0
+if [ "${1:-}" = "--force" ]; then
+  force=1
+fi
+
+if [ "$force" -eq 0 ] && [ -f "$LAST_SUCCESS" ]; then
+  age=$(( $(date +%s) - $(stat -f %m "$LAST_SUCCESS" 2>/dev/null || stat -c %Y "$LAST_SUCCESS") ))
+  if [ "$age" -lt 86400 ]; then
+    exit 0
+  fi
+fi
+
+exec > >(tee "$RUN_LOG") 2>&1
+
+export PATH="$HOME/.local/bin:$PATH"
+[ -f "$HOME/.config/dotfiles/.env" ] && . "$HOME/.config/dotfiles/.env"
+
+echo "==> dotup starting at $(date -u +%Y-%m-%dT%H:%M:%SZ) on $(hostname)"
+
+failed=()
+
+run_step() {
+  local name="$1"; shift
+  echo "==> [$name] $*"
+  if "$@"; then
+    echo "==> [$name] ok"
+  else
+    echo "==> [$name] FAILED (exit $?)"
+    failed+=("$name")
+  fi
+}
+
+run_step chezmoi chezmoi update --force
+
+run_step claude bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
+
+if command -v npm >/dev/null 2>&1; then
+  run_step codex npm install -g @openai/codex
+else
+  echo "==> [codex] FAILED (npm not in PATH)"
+  failed+=("codex")
+fi
+
+if [ ${#failed[@]} -eq 0 ]; then
+  rm -f "$LAST_FAILURE"
+  touch "$LAST_SUCCESS"
+  echo "==> dotup ok"
+  exit 0
+fi
+
+failed_csv=$(IFS=,; echo "${failed[*]}")
+ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+printf '{"timestamp":"%s","host":"%s","failed":"%s","log":"%s"}\n' \
+  "$ts" "$(hostname)" "$failed_csv" "$RUN_LOG" > "$LAST_FAILURE"
+
+echo "==> dotup failed: $failed_csv"
+exit 1
