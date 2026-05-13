@@ -20,6 +20,7 @@ fi
 if [ "$force" -eq 0 ] && [ -f "$LAST_SUCCESS" ]; then
   age=$(( $(date +%s) - $(stat -c %Y "$LAST_SUCCESS" 2>/dev/null || stat -f %m "$LAST_SUCCESS") ))
   if [ "$age" -lt 86400 ]; then
+    [ -t 1 ] && echo "dotup: skipped (last success ${age}s ago, <24h); run 'dotup --force' to override"
     exit 0
   fi
 fi
