@@ -20,7 +20,7 @@ fi
 {{ else -}}
 echo "==> Installing Linux packages..."
 apt-get update
-apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf delta zoxide
+apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf delta zoxide unzip
 
 # Eternal Terminal
 if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
