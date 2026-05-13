@@ -4,4 +4,8 @@ if [ -f /opt/homebrew/bin/brew ]; then
 fi
 {{ end -}}
 
+{{ if eq .machine_type "linux-dev" -}}
+export IS_SANDBOX=1
+{{ end -}}
+
 export PATH="$HOME/.local/bin:$PATH"
