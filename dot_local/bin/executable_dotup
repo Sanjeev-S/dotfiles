@@ -18,7 +18,7 @@ if [ "${1:-}" = "--force" ]; then
 fi
 
 if [ "$force" -eq 0 ] && [ -f "$LAST_SUCCESS" ]; then
-  age=$(( $(date +%s) - $(stat -f %m "$LAST_SUCCESS" 2>/dev/null || stat -c %Y "$LAST_SUCCESS") ))
+  age=$(( $(date +%s) - $(stat -c %Y "$LAST_SUCCESS" 2>/dev/null || stat -f %m "$LAST_SUCCESS") ))
   if [ "$age" -lt 86400 ]; then
     exit 0
   fi
