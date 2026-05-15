@@ -47,6 +47,8 @@ run_step() {
 
 run_step chezmoi chezmoi update --force
 
+run_step secrets "$HOME/.local/bin/secrets-refresh"
+
 run_step claude bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
 
 if command -v npm >/dev/null 2>&1; then
