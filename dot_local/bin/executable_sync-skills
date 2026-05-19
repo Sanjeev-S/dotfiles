@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Daily refresh for external Claude Code skill/plugin sources.
+# Called from dotup; on any sub-step failure, exits 1 so the zsh banner
+# names "skills" as the failed step. Missing tools (claude, bun) are
+# silently skipped — not counted as failures.
+#
+# Plugin updates: `claude plugin update` lands the new binary immediately
+# but activation defers to the next Claude Code restart.
+
+set -uo pipefail
+
+# bun and claude land in non-standard PATH entries during install. dotup runs
+# us from a systemd/launchd-minimal env, so make sure both are findable.
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+
+SKILLS_DIR="$HOME/.claude/skills"
+failed=()
+
+run_step() {
+  local name="$1"; shift
+  echo "==> [$name] $*"
+  if "$@"; then
+    echo "==> [$name] ok"
+  else
+    echo "==> [$name] FAILED (exit $?)"
+    failed+=("$name")
+  fi
+}
+
+# --- Claude Code plugins ---
+if command -v claude >/dev/null 2>&1; then
+  run_step marketplace-catalog claude plugin marketplace update
+  run_step superpowers claude plugin update superpowers@superpowers-marketplace
+  run_step compound-engineering claude plugin update compound-engineering@compound-engineering-plugin
+else
+  echo "==> [plugins] skipped (claude not in PATH)"
+fi
+
+# --- gstack ---
+if [ -d "$SKILLS_DIR/gstack/.git" ]; then
+  if run_step gstack-pull git -C "$SKILLS_DIR/gstack" pull --ff-only --quiet; then
+    if command -v bun >/dev/null 2>&1; then
+      run_step gstack-setup "$SKILLS_DIR/gstack/setup" -q --no-team
+    else
+      echo "==> [gstack-setup] skipped (bun not in PATH)"
+    fi
+  fi
+fi
+
+# --- mattpocock-skills ---
+MP_REPO="$SKILLS_DIR/mattpocock-skills"
+if [ -d "$MP_REPO/.git" ]; then
+  run_step matt-pull git -C "$MP_REPO" pull --ff-only --quiet
+fi
+
+# Symlink loop — runs independent of the pull outcome so previously-unlinked
+# skills (e.g. added upstream between dotup runs) still get linked.
+if [ -d "$MP_REPO/skills" ]; then
+  echo "==> [matt-link] re-linking engineering/ + productivity/"
+  link_ok=1
+  for category in engineering productivity; do
+    for src in "$MP_REPO/skills/$category"/*/; do
+      [ -f "$src/SKILL.md" ] || continue
+      name="$(basename "$src")"
+      dest="$SKILLS_DIR/$name"
+      if [ -L "$dest" ] || [ ! -e "$dest" ]; then
+        ln -sfn "$src" "$dest" || link_ok=0
+      fi
+    done
+  done
+  if [ "$link_ok" -eq 1 ]; then
+    echo "==> [matt-link] ok"
+  else
+    echo "==> [matt-link] FAILED"
+    failed+=("matt-link")
+  fi
+fi
+
+if [ "${#failed[@]}" -gt 0 ]; then
+  echo "==> sync-skills FAILED: ${failed[*]}" >&2
+  exit 1
+fi
+echo "==> sync-skills ok"
