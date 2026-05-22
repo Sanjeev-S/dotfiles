@@ -13,7 +13,8 @@ set -uo pipefail
 # us from a systemd/launchd-minimal env, so make sure both are findable.
 export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
-SKILLS_DIR="$HOME/.claude/skills"
+CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
+CODEX_SKILLS_DIR="$HOME/.codex/skills"
 failed=()
 
 run_step() {
@@ -37,10 +38,10 @@ else
 fi
 
 # --- gstack ---
-if [ -d "$SKILLS_DIR/gstack/.git" ]; then
-  if run_step gstack-pull git -C "$SKILLS_DIR/gstack" pull --ff-only --quiet; then
+if [ -d "$CLAUDE_SKILLS_DIR/gstack/.git" ]; then
+  if run_step gstack-pull git -C "$CLAUDE_SKILLS_DIR/gstack" pull --ff-only --quiet; then
     if command -v bun >/dev/null 2>&1; then
-      run_step gstack-setup "$SKILLS_DIR/gstack/setup" -q --no-team
+      run_step gstack-setup "$CLAUDE_SKILLS_DIR/gstack/setup" -q --no-team
     else
       echo "==> [gstack-setup] skipped (bun not in PATH)"
     fi
@@ -48,32 +49,48 @@ if [ -d "$SKILLS_DIR/gstack/.git" ]; then
 fi
 
 # --- mattpocock-skills ---
-MP_REPO="$SKILLS_DIR/mattpocock-skills"
+MP_REPO="$CLAUDE_SKILLS_DIR/mattpocock-skills"
 if [ -d "$MP_REPO/.git" ]; then
   run_step matt-pull git -C "$MP_REPO" pull --ff-only --quiet
 fi
 
-# Symlink loop — runs independent of the pull outcome so previously-unlinked
-# skills (e.g. added upstream between dotup runs) still get linked.
-if [ -d "$MP_REPO/skills" ]; then
-  echo "==> [matt-link] re-linking engineering/ + productivity/"
-  link_ok=1
+link_matt_skills() {
+  local dest_root="$1"
+  local link_ok=1
+
+  mkdir -p "$dest_root" || return 1
+
   for category in engineering productivity; do
     for src in "$MP_REPO/skills/$category"/*/; do
       [ -f "$src/SKILL.md" ] || continue
       name="$(basename "$src")"
-      dest="$SKILLS_DIR/$name"
+      dest="$dest_root/$name"
       if [ -L "$dest" ] || [ ! -e "$dest" ]; then
         ln -sfn "$src" "$dest" || link_ok=0
       fi
     done
   done
-  if [ "$link_ok" -eq 1 ]; then
-    echo "==> [matt-link] ok"
-  else
-    echo "==> [matt-link] FAILED"
-    failed+=("matt-link")
-  fi
+
+  [ "$link_ok" -eq 1 ]
+}
+
+# Symlink loop — runs independent of the pull outcome so previously-unlinked
+# skills (e.g. added upstream between dotup runs) still get linked.
+if [ -d "$MP_REPO/skills" ]; then
+  for target in claude codex; do
+    case "$target" in
+      claude) dest_root="$CLAUDE_SKILLS_DIR" ;;
+      codex) dest_root="$CODEX_SKILLS_DIR" ;;
+    esac
+
+    echo "==> [matt-link-$target] re-linking engineering/ + productivity/ to $dest_root"
+    if link_matt_skills "$dest_root"; then
+      echo "==> [matt-link-$target] ok"
+    else
+      echo "==> [matt-link-$target] FAILED"
+      failed+=("matt-link-$target")
+    fi
+  done
 fi
 
 if [ "${#failed[@]}" -gt 0 ]; then
