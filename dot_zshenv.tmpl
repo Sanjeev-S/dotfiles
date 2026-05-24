@@ -8,4 +8,8 @@ fi
 export IS_SANDBOX=1
 {{ end -}}
 
-export PATH="$HOME/.local/bin:$PATH"
+export COMPOSIO_INSTALL_DIR="$HOME/.composio"
+export MISE_SHIMS="$HOME/.local/share/mise/shims"
+export PATH="$MISE_SHIMS:$COMPOSIO_INSTALL_DIR:$HOME/.local/bin:$PATH"
+typeset -U path
+

@@ -18,7 +18,7 @@ Manual:
 
 ```bash
 chezmoi apply        # apply current source to $HOME
-dotup --force        # update chezmoi + Claude + Codex now
+dotup --force        # update chezmoi + Claude + Codex + Matt Pocock skills now
 ```
 
 Scheduled: `dotup` runs hourly (launchd on macOS, systemd-user on Linux) and no-ops if a successful run happened in the last 24h. On any step failure, a banner appears in new zsh sessions until the next clean run. See `docs/adr/0001-dotup-scheduling-architecture.md`.
@@ -45,7 +45,7 @@ ssh hetzner-default -t 'tmux new-session -A -s main'
 | Tool | Purpose | Platform |
 |------|---------|----------|
 | Claude Code | AI coding assistant + plugins (superpowers, compound-engineering) | Both |
-| Codex | OpenAI Codex CLI | Both |
+| Codex | OpenAI Codex CLI + Matt Pocock skills | Both |
 | Composio CLI | Connect coding agents to external app toolkits | Both |
 | mise | Language runtime manager (Node, Python) | Both |
 | mosh | Mobile-friendly SSH (UDP, roaming) | Both |
@@ -101,6 +101,7 @@ Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config 
   run_once_after_02-cache-secrets.sh.tmpl
   run_once_after_03-install-claude.sh.tmpl
   run_once_after_03b-install-codex.sh.tmpl
+  run_once_after_03c-install-codex-skills.sh.tmpl
   run_once_after_05-configure-dev-server.sh.tmpl
   run_once_after_06-load-launchagent.sh.tmpl
   run_once_after_07-schedule-dotup.sh.tmpl
@@ -112,6 +113,7 @@ dot_claude/                     # → ~/.claude/
   executable_statusline.sh      #   Claude Code statusline
 dot_codex/                      # → ~/.codex/
   config.toml.tmpl              #   Codex CLI config
+  AGENTS.md                     #   Global Codex instructions
 dot_config/
   mise/config.toml              # → ~/.config/mise/config.toml
   starship.toml                 # → ~/.config/starship.toml
@@ -122,7 +124,9 @@ dot_config/systemd/user/        # → ~/.config/systemd/user/ (linux-dev only)
 dot_local/bin/
   executable_secrets-refresh    # → ~/.local/bin/secrets-refresh
   executable_dotup              # → ~/.local/bin/dotup
+  executable_mattpocock-skills-sync # → ~/.local/bin/mattpocock-skills-sync
 dot_tmux.conf                   # → ~/.tmux.conf
+dot_zprofile.tmpl               # → ~/.zprofile (login-shell PATH after macOS path_helper)
 dot_zshrc.tmpl                  # → ~/.zshrc
 private_Library/                # → ~/Library/ (macOS only)
   LaunchAgents/                 #   ntfy subscriber plist (mac-personal),

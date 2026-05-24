@@ -4,9 +4,14 @@ set -euo pipefail
 {{ if or (eq .machine_type "mac-personal") (eq .machine_type "mac-dev") -}}
 echo "==> Loading dotup LaunchAgent..."
 PLIST="$HOME/Library/LaunchAgents/com.sanjeev.dotup.plist"
-launchctl bootout gui/"$(id -u)" "$PLIST" 2>/dev/null || true
-launchctl bootstrap gui/"$(id -u)" "$PLIST"
-echo "    dotup LaunchAgent loaded (hourly)"
+SERVICE="gui/$(id -u)/com.sanjeev.dotup"
+
+if launchctl print "$SERVICE" >/dev/null 2>&1; then
+  echo "    dotup LaunchAgent already loaded (hourly)"
+else
+  launchctl bootstrap gui/"$(id -u)" "$PLIST"
+  echo "    dotup LaunchAgent loaded (hourly)"
+fi
 
 {{ else if eq .machine_type "linux-dev" -}}
 echo "==> Enabling dotup systemd-user timer..."

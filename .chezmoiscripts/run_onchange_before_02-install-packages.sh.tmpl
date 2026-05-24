@@ -60,16 +60,21 @@ fi
 
 {{ end -}}
 
-# Composio CLI (both platforms) — standalone binary, symlinked into ~/.local/bin.
+# Composio CLI (both platforms) -- standalone binary, symlinked into ~/.local/bin.
 # The upstream installer appends a "# Composio CLI" block to ~/.zshrc, but this
 # script is a `_before_` hook, so chezmoi rewrites ~/.zshrc from dot_zshrc.tmpl
 # right after and wipes the append. PATH coverage comes from dot_zshenv.tmpl.
-if [ ! -x "$HOME/.composio/composio" ]; then
+export COMPOSIO_INSTALL_DIR="${COMPOSIO_INSTALL_DIR:-$HOME/.composio}"
+export PATH="$COMPOSIO_INSTALL_DIR:$PATH"
+if [ ! -x "$COMPOSIO_INSTALL_DIR/composio" ]; then
   echo "==> Installing Composio CLI..."
-  curl -fsSL https://composio.dev/install | bash
+  # Latest @composio/cli@0.2.29 currently has no binary assets.
+  COMPOSIO_CLI_VERSION="${COMPOSIO_CLI_VERSION:-@composio/cli@0.2.28}"
+  curl -fsSL https://composio.dev/install | bash -s -- "$COMPOSIO_CLI_VERSION"
 fi
 install -d "$HOME/.local/bin"
-ln -sf "$HOME/.composio/composio" "$HOME/.local/bin/composio"
+ln -sf "$COMPOSIO_INSTALL_DIR/composio" "$HOME/.local/bin/composio"
+
 
 # Oh My Zsh (both platforms)
 if [ ! -d "$HOME/.oh-my-zsh" ]; then

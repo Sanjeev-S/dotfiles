@@ -32,6 +32,12 @@ if [ ! -d "$SKILLS_DIR/mattpocock-skills/.git" ]; then
   git clone --single-branch --depth 1 https://github.com/mattpocock/skills.git "$SKILLS_DIR/mattpocock-skills"
 fi
 
-# Build gstack's browse binary + link matt's skills + bring everything to latest.
+# Build gstack's browse binary + link Matt Pocock skills + bring everything to latest.
 # Failures are reported by sync-skills' own output and don't abort the apply.
 "$HOME/.local/bin/sync-skills" || true
+
+if command -v mattpocock-skills-sync >/dev/null 2>&1; then
+  echo "==> Installing Matt Pocock skills for Claude Code..."
+  mattpocock-skills-sync claude || true
+fi
+
