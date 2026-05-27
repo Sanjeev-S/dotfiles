@@ -31,7 +31,11 @@ fi
 
 # dotup failure banner
 if [ -f "$HOME/.local/state/dotup/last-failure" ]; then
-  _df=$(stat -f %m "$HOME/.local/state/dotup/last-failure" 2>/dev/null || stat -c %Y "$HOME/.local/state/dotup/last-failure")
+{{- if eq .chezmoi.os "darwin" }}
+  _df=$(stat -f %m "$HOME/.local/state/dotup/last-failure")
+{{- else }}
+  _df=$(stat -c %Y "$HOME/.local/state/dotup/last-failure")
+{{- end }}
   _age=$(( ( $(date +%s) - _df ) / 3600 ))
   _steps=$(awk -F'"failed":"' '{print $2}' "$HOME/.local/state/dotup/last-failure" | awk -F'"' '{print $1}')
   print -P "%F{red}⚠ dotup failed ${_age}h ago on $(hostname -s): ${_steps}%f"
