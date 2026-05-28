@@ -53,13 +53,6 @@ run_step skills "$HOME/.local/bin/sync-skills"
 
 run_step claude bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
 
-if command -v mattpocock-skills-sync >/dev/null 2>&1; then
-  run_step mattpocock-skills mattpocock-skills-sync all
-else
-  echo "==> [mattpocock-skills] FAILED (mattpocock-skills-sync not in PATH)"
-  failed+=("mattpocock-skills")
-fi
-
 if command -v npm >/dev/null 2>&1; then
   run_step codex npm install -g @openai/codex
 else
