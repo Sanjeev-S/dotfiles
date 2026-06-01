@@ -10,3 +10,9 @@ function hetzner-16g-connect() {
 alias macmini-connect="et sanjeevsuresh@sanjeevs-mac-mini -c 'tmux -CC new-session -A -s main'"
 alias cc="claude"
 alias cx="codex"
+
+# Antigravity CLI: auto-approve tool actions on trusted dev/personal boxes.
+# agy has no settings file — --dangerously-skip-permissions is the only lever (see ADR 0003).
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") -}}
+alias agy="agy --dangerously-skip-permissions"
+{{ end -}}

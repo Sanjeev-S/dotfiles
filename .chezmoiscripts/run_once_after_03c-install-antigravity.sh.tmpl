@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v agy &>/dev/null; then
+  echo "==> Antigravity CLI already installed; it self-updates in the background (not via dotup)"
+  exit 0
+fi
+
+echo "==> Installing Antigravity CLI (agy)..."
+# Official installer drops a self-updating binary at ~/.local/bin/agy (mac + Linux).
+# It appends PATH exports to ~/.zshrc/~/.bashrc/~/.profile; the ~/.zshrc append is
+# harmless (chezmoi rewrites it from dot_zshrc.tmpl, and PATH already comes from
+# dot_zshenv.tmpl). Not added to dotup — agy updates itself.
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+
+if command -v agy &>/dev/null; then
+  echo "==> Antigravity CLI installed. One-time auth (Google AI Pro):"
+  echo "    run 'agy', then Login with Google. On a headless box, open the printed"
+  echo "    URL on your laptop and paste the code back. Creds land under ~/.gemini/."
+else
+  echo "    WARNING: agy not found after install"
+fi

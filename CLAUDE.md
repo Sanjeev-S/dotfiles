@@ -19,6 +19,7 @@ This repo root IS the chezmoi source directory. Files use chezmoi naming convent
 |--------|-----------|---------|
 | `dot_claude/` | `~/.claude/` | Claude Code config, hooks, statusline |
 | `dot_codex/` | `~/.codex/` | Codex CLI config |
+| `dot_gemini/` | `~/.gemini/` | Antigravity CLI (`agy`) instructions |
 | `dot_local/bin/` | `~/.local/bin/` | User scripts (`secrets-refresh`, `dotup`) |
 | `dot_config/mise/` | `~/.config/mise/` | mise tool versions (Node, Python) |
 | `dot_config/starship.toml` | `~/.config/starship.toml` | Prompt theme |
