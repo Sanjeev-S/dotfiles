@@ -87,6 +87,18 @@ Secrets are fetched from 1Password via `op read` — nothing is stored in the re
 4. To refresh secrets after a rotation in 1Password: `secrets-refresh`
 5. To rotate the SA token itself: `bash rotate-op-token.sh`
 
+### macOS per-machine step (stops daily `op` permission prompts)
+
+On each Mac, turn **off** 1Password app → Settings → Developer → **"Integrate with 1Password CLI"**.
+
+We authenticate `op` exclusively with `OP_SERVICE_ACCOUNT_TOKEN`, so the desktop-app
+integration is unused. While it's on, every `op` call probes the 1Password app, which
+fires a macOS TCC prompt ("op would like to access data from other apps"). `dotup` runs
+`secrets-refresh` (9× `op read`) once a day under launchd, where that grant can't persist
+— so the prompt re-fires ~9× daily until the integration is disabled. This is an app
+setting, not a dotfile, so it must be set once per Mac. (Leave "Use the SSH agent" on if
+you use it — that's a separate toggle.)
+
 Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
 ## Repo structure
