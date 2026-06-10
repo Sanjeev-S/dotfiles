@@ -49,9 +49,19 @@ if [ -d "$CLAUDE_SKILLS_DIR/gstack/.git" ]; then
 fi
 
 # --- mattpocock-skills ---
-MP_REPO="$CLAUDE_SKILLS_DIR/mattpocock-skills"
+# (Stale in-skills clones from older installs are removed by the cleanups
+# chezmoiscript; here we just keep the shared clone current and relink.)
+# Shared clone lives OUTSIDE any agent's skills dir, so Claude Code doesn't
+# discover each skill twice (once via the repo's own SKILL.md tree, once via
+# our symlinks). Both agents symlink into this single clone — see link loop
+# below. Self-bootstraps so sync-skills works on a fresh box without the
+# install script having run first.
+MP_REPO="$HOME/.local/share/mattpocock-skills"
 if [ -d "$MP_REPO/.git" ]; then
   run_step matt-pull git -C "$MP_REPO" pull --ff-only --quiet
+elif [ ! -e "$MP_REPO" ]; then
+  run_step matt-clone git clone --single-branch --depth 1 \
+    https://github.com/mattpocock/skills.git "$MP_REPO"
 fi
 
 link_matt_skills() {

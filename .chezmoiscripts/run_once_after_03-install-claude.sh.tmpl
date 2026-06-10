@@ -27,17 +27,12 @@ if [ ! -d "$SKILLS_DIR/gstack/.git" ]; then
   git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$SKILLS_DIR/gstack"
 fi
 
-if [ ! -d "$SKILLS_DIR/mattpocock-skills/.git" ]; then
-  echo "==> Cloning mattpocock/skills..."
-  git clone --single-branch --depth 1 https://github.com/mattpocock/skills.git "$SKILLS_DIR/mattpocock-skills"
-fi
+# mattpocock/skills is cloned to ~/.local/share (NOT inside skills/) and
+# symlinked into both Claude and Codex by sync-skills, which also self-clones
+# if the repo is missing — so no explicit clone is needed here.
 
-# Build gstack's browse binary + link Matt Pocock skills + bring everything to latest.
-# Failures are reported by sync-skills' own output and don't abort the apply.
+# Build gstack's browse binary + clone/link Matt Pocock skills + bring
+# everything to latest. Failures are reported by sync-skills' own output and
+# don't abort the apply.
 "$HOME/.local/bin/sync-skills" || true
-
-if command -v mattpocock-skills-sync >/dev/null 2>&1; then
-  echo "==> Installing Matt Pocock skills for Claude Code..."
-  mattpocock-skills-sync claude || true
-fi
 
