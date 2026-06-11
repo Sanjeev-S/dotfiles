@@ -87,17 +87,18 @@ Secrets are fetched from 1Password via `op read` — nothing is stored in the re
 4. To refresh secrets after a rotation in 1Password: `secrets-refresh`
 5. To rotate the SA token itself: `bash rotate-op-token.sh`
 
-### macOS per-machine step (stops daily `op` permission prompts)
+### macOS: why `op` doesn't trigger permission prompts here
 
-On each Mac, turn **off** 1Password app → Settings → Developer → **"Integrate with 1Password CLI"**.
-
-We authenticate `op` exclusively with `OP_SERVICE_ACCOUNT_TOKEN`, so the desktop-app
-integration is unused. While it's on, every `op` call probes the 1Password app, which
-fires a macOS TCC prompt ("op would like to access data from other apps"). `dotup` runs
-`secrets-refresh` (9× `op read`) once a day under launchd, where that grant can't persist
-— so the prompt re-fires ~9× daily until the integration is disabled. This is an app
-setting, not a dotfile, so it must be set once per Mac. (Leave "Use the SSH agent" on if
-you use it — that's a separate toggle.)
+`secrets-refresh` exports `OP_BIOMETRIC_UNLOCK_ENABLED=false` and
+`OP_LOAD_DESKTOP_APP_SETTINGS=false` before calling `op`. Without these, every `op`
+invocation reads the 1Password desktop app's settings from its protected group container
+(`~/Library/Group Containers/2BUA8C4S2C.com.1password` — hardcoded in the `op` binary),
+which fires a macOS TCC prompt ("op would like to access data from other apps"). Under
+launchd (`dotup`) that grant can't persist for an unbundled CLI, so it used to re-prompt
+on each of the 9 daily reads. Disabling "Integrate with 1Password CLI" in the app does
+NOT stop the CLI-side probe — only the env vars do. We authenticate exclusively with
+`OP_SERVICE_ACCOUNT_TOKEN`, so the desktop-app integration is unused anyway. No
+per-machine setup needed; the fix travels with this repo.
 
 Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
