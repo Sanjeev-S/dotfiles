@@ -5,10 +5,6 @@ Host macmini
     HostName sanjeevs-mac-mini
     User sanjeevsuresh
 
-Host hetzner-default
-    HostName 95.217.135.96
-    User root
-
 Host hetzner-16g-tunnel
     HostName 89.167.110.214
     User root
