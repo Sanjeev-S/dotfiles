@@ -27,17 +27,17 @@ Scheduled: `dotup` runs hourly (launchd on macOS, systemd-user on Linux) and no-
 
 ### Mac (iTerm2 native tabs via ET + tmux -CC)
 ```bash
-et root@hetzner-default -c 'tmux -CC new-session -A -s main'
+et root@hetzner-16g -c 'tmux -CC new-session -A -s main'
 ```
 
 ### Phone (Blink / mosh)
 ```bash
-mosh root@hetzner-default -- tmux attach -t main
+mosh root@hetzner-16g -- tmux attach -t main
 ```
 
 ### Plain SSH
 ```bash
-ssh hetzner-default -t 'tmux new-session -A -s main'
+ssh hetzner-16g -t 'tmux new-session -A -s main'
 ```
 
 ## What's included
