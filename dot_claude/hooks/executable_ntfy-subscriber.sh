@@ -8,7 +8,7 @@ export PATH="/opt/homebrew/bin:$PATH"
 [ -f "$HOME/.config/dotfiles/secrets.sh" ] && source "$HOME/.config/dotfiles/secrets.sh"
 
 if [ -z "${NTFY_TOPIC:-}" ]; then
-  echo "ERROR: NTFY_TOPIC not set. Run bootstrap.sh with op CLI and OP_SERVICE_ACCOUNT_TOKEN." >&2
+  echo "ERROR: NTFY_TOPIC not set. Run rotate-op-token.sh (or chezmoi init) to set the 1Password token, then secrets-refresh." >&2
   sleep 30
   exit 1
 fi
