@@ -21,14 +21,11 @@ if [ -n "$cwd" ] && [ -d "$cwd" ]; then
 fi
 
 fmt_tokens() {
-  local n="$1"
-  if [ "$n" -ge 1000000 ] 2>/dev/null; then
-    printf '%.1fM' "$(echo "$n / 1000000" | bc -l)"
-  elif [ "$n" -ge 1000 ] 2>/dev/null; then
-    printf '%.1fk' "$(echo "$n / 1000" | bc -l)"
-  else
-    echo "$n"
-  fi
+  awk -v n="$1" 'BEGIN {
+    if (n >= 1000000)   printf "%.1fM", n / 1000000
+    else if (n >= 1000) printf "%.1fk", n / 1000
+    else                printf "%d", n
+  }'
 }
 
 echo "${repo_branch}$model | ctx: ${pct}% | $(fmt_tokens "$in_tok") in / $(fmt_tokens "$out_tok") out"
