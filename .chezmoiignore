@@ -4,7 +4,7 @@ README.md
 AGENTS.md
 docs/**
 rotate-op-token.sh
-bootstrap.sh
+bootstrap-mac.sh
 .gitignore
 
 {{ if ne .machine_type "mac-personal" }}
