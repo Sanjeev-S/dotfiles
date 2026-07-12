@@ -2,18 +2,18 @@
 set -euo pipefail
 
 {{ if or (eq .machine_type "mac-personal") (eq .machine_type "mac-dev") -}}
+# Re-runs whenever the plist template changes; reload-style (bootout +
+# bootstrap) so edits actually take effect on existing machines.
+# plist hash: {{ include "private_Library/LaunchAgents/com.sanjeev.dotup.plist.tmpl" | sha256sum }}
 echo "==> Loading dotup LaunchAgent..."
 PLIST="$HOME/Library/LaunchAgents/com.sanjeev.dotup.plist"
-SERVICE="gui/$(id -u)/com.sanjeev.dotup"
 
-if launchctl print "$SERVICE" >/dev/null 2>&1; then
-  echo "    dotup LaunchAgent already loaded (hourly)"
-else
-  launchctl bootstrap gui/"$(id -u)" "$PLIST"
-  echo "    dotup LaunchAgent loaded (hourly)"
-fi
+launchctl bootout gui/"$(id -u)" "$PLIST" 2>/dev/null || true
+launchctl bootstrap gui/"$(id -u)" "$PLIST"
+echo "    dotup LaunchAgent loaded (hourly)"
 
 {{ else if eq .machine_type "linux-dev" -}}
+# unit hashes: {{ include "dot_config/systemd/user/dotup.service" | sha256sum }} {{ include "dot_config/systemd/user/dotup.timer" | sha256sum }}
 echo "==> Enabling dotup systemd-user timer..."
 systemctl --user daemon-reload
 systemctl --user enable --now dotup.timer

@@ -2,6 +2,8 @@
 set -euo pipefail
 
 {{ if eq .machine_type "mac-personal" -}}
+# Re-runs whenever the plist template changes, so edits actually reload.
+# plist hash: {{ include "private_Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist.tmpl" | sha256sum }}
 echo "==> Loading ntfy-subscriber LaunchAgent..."
 launchctl bootout gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist" 2>/dev/null || true
 launchctl bootstrap gui/"$(id -u)" "$HOME/Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist"
