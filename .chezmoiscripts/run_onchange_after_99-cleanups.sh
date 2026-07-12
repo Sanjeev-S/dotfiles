@@ -16,3 +16,12 @@ for stale in "$HOME/.claude/skills/mattpocock-skills" "$HOME/.codex/skills/mattp
     rm -rf "$stale"
   fi
 done
+
+# 2026-07: a stale .chezmoiignore entry (pre-rename bootstrap.sh) let chezmoi
+# deploy bootstrap-mac.sh into $HOME on every machine. The ignore entry is
+# fixed; sweep the stray copies here. (.chezmoiremove can't do it — ignored
+# targets are exempt from removal too.)
+if [ -f "$HOME/bootstrap-mac.sh" ]; then
+  echo "==> [cleanup] removing stray ~/bootstrap-mac.sh"
+  rm -f "$HOME/bootstrap-mac.sh"
+fi
