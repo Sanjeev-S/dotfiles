@@ -40,8 +40,10 @@ run_step() {
   if "$@"; then
     echo "==> [$name] ok"
   else
-    echo "==> [$name] FAILED (exit $?)"
+    local rc=$?
+    echo "==> [$name] FAILED (exit $rc)"
     failed+=("$name")
+    return "$rc"
   fi
 }
 
@@ -51,7 +53,7 @@ run_step secrets "$HOME/.local/bin/secrets-refresh"
 
 run_step skills "$HOME/.local/bin/sync-skills"
 
-run_step claude bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
+run_step claude bash -c 'set -o pipefail; curl -fsSL https://claude.ai/install.sh | bash'
 
 if command -v npm >/dev/null 2>&1; then
   run_step codex npm install -g @openai/codex

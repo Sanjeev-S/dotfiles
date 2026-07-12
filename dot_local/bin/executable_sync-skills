@@ -23,8 +23,10 @@ run_step() {
   if "$@"; then
     echo "==> [$name] ok"
   else
-    echo "==> [$name] FAILED (exit $?)"
+    local rc=$?
+    echo "==> [$name] FAILED (exit $rc)"
     failed+=("$name")
+    return "$rc"
   fi
 }
 
