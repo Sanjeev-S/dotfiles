@@ -1,0 +1,5 @@
+# Re-apply PATH after macOS login shells run /etc/zprofile path_helper.
+export COMPOSIO_INSTALL_DIR="${COMPOSIO_INSTALL_DIR:-$HOME/.composio}"
+export MISE_SHIMS="${MISE_SHIMS:-$HOME/.local/share/mise/shims}"
+export PATH="$MISE_SHIMS:$COMPOSIO_INSTALL_DIR:$HOME/.local/bin:$PATH"
+typeset -U path
