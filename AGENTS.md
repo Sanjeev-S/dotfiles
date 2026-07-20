@@ -23,6 +23,7 @@ This repo root IS the chezmoi source directory. Files use chezmoi naming convent
 | `dot_local/bin/` | `~/.local/bin/` | User scripts (`secrets-refresh`, `dotup`, `sync-skills`) |
 | `dot_config/mise/` | `~/.config/mise/` | mise tool versions (Node, Python) |
 | `dot_config/starship.toml` | `~/.config/starship.toml` | Prompt theme |
+| `dot_config/karabiner/` | `~/.config/karabiner/` | Karabiner-Elements keymaps (macOS only) |
 | `.chezmoiscripts/` | (not deployed) | Install scripts run by chezmoi |
 | `docs/` | (not deployed) | Plans, brainstorms, ADRs |
 

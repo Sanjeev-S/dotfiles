@@ -1,0 +1,149 @@
+{
+    "profiles": [
+        {
+            "complex_modifications": {
+                "rules": [
+                    {
+                        "description": "Cmd+Arrow Keys repeat when held",
+                        "manipulators": [
+                            {
+                                "description": "Cmd+Right Arrow repeat when held",
+                                "from": {
+                                    "key_code": "right_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "parameters": {
+                                    "basic.key_repeat_delay_milliseconds": 8,
+                                    "basic.key_repeat_initial_delay_milliseconds": 50,
+                                    "basic.to_if_held_down_threshold_milliseconds": 50
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "right_arrow",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "key_code": "right_arrow",
+                                        "modifiers": ["command"],
+                                        "repeat": true
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "description": "Cmd+Left Arrow repeat when held",
+                                "from": {
+                                    "key_code": "left_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "parameters": {
+                                    "basic.key_repeat_delay_milliseconds": 8,
+                                    "basic.key_repeat_initial_delay_milliseconds": 50,
+                                    "basic.to_if_held_down_threshold_milliseconds": 50
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "left_arrow",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "key_code": "left_arrow",
+                                        "modifiers": ["command"],
+                                        "repeat": true
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "description": "Cmd+Up Arrow repeat when held",
+                                "from": {
+                                    "key_code": "up_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "parameters": {
+                                    "basic.key_repeat_delay_milliseconds": 8,
+                                    "basic.key_repeat_initial_delay_milliseconds": 150,
+                                    "basic.to_if_held_down_threshold_milliseconds": 150
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "up_arrow",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "key_code": "up_arrow",
+                                        "modifiers": ["command"],
+                                        "repeat": true
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "description": "Cmd+Down Arrow repeat when held",
+                                "from": {
+                                    "key_code": "down_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "parameters": {
+                                    "basic.key_repeat_delay_milliseconds": 8,
+                                    "basic.key_repeat_initial_delay_milliseconds": 150,
+                                    "basic.to_if_held_down_threshold_milliseconds": 150
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "down_arrow",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "key_code": "down_arrow",
+                                        "modifiers": ["command"],
+                                        "repeat": true
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "devices": [
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 1957,
+                        "vendor_id": 1118
+                    },
+                    "simple_modifications": [
+                        {
+                            "from": { "key_code": "application" },
+                            "to": [{ "key_code": "right_option" }]
+                        },
+                        {
+                            "from": { "key_code": "left_command" },
+                            "to": [{ "key_code": "left_option" }]
+                        },
+                        {
+                            "from": { "key_code": "left_option" },
+                            "to": [{ "key_code": "left_command" }]
+                        },
+                        {
+                            "from": { "key_code": "right_option" },
+                            "to": [{ "key_code": "right_command" }]
+                        }
+                    ]
+                }
+            ],
+            "name": "Default profile",
+            "selected": true,
+            "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+        }
+    ]
+}
