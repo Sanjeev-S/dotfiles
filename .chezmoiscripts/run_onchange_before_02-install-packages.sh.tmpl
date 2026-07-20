@@ -10,6 +10,15 @@ brew install et
 brew install --cask iterm2
 brew install --cask font-jetbrains-mono-nerd-font
 brew install --cask 1password-cli
+{{ if eq .machine_type "mac-dev" -}}
+# Open-source tailscaled as a boot-time system daemon — deliberately NOT the GUI
+# app, which only runs inside a logged-in user session. Registration happens in
+# the dev-server script; auth stays a manual `tailscale up`. See ADR 0004.
+brew install tailscale
+{{ else -}}
+# GUI app for the interactive laptop. --adopt takes over a hand-installed copy.
+brew install --cask --adopt tailscale-app
+{{ end -}}
 
 echo "==> Configuring iTerm2..."
 ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
@@ -30,7 +39,7 @@ fi
 "${SUDO[@]}" apt-get update
 "${SUDO[@]}" apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip
 
-{{ if eq .machine_type "linux-dev" -}}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "dgx-spark") -}}
 # Eternal Terminal
 if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
   echo "==> Adding Eternal Terminal PPA..."
