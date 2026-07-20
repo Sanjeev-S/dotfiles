@@ -11,6 +11,18 @@ sudo pmset -a autorestart 1
 echo "==> Starting Eternal Terminal daemon..."
 sudo brew services start et
 
+echo "==> Registering Tailscale system daemon..."
+if [ ! -f /Library/LaunchDaemons/com.tailscale.tailscaled.plist ]; then
+  sudo "$(brew --prefix)/bin/tailscaled" install-system-daemon
+fi
+
+echo "==> Enabling Remote Login (sshd)..."
+# systemsetup may need Full Disk Access for the calling terminal on recent
+# macOS; if this errors, flip it in System Settings > General > Sharing.
+if ! sudo systemsetup -getremotelogin | grep -q ": On"; then
+  sudo systemsetup -setremotelogin on
+fi
+
 {{ else if and (eq .chezmoi.os "linux") (eq .machine_type "linux-dev") -}}
 echo "==> Starting Eternal Terminal daemon..."
 sudo systemctl enable --now et
@@ -31,5 +43,8 @@ if [ -n "$WIFI_CONNECTION" ]; then
     connection.autoconnect yes \
     802-11-wireless.powersave 2
 fi
+
+echo "==> Starting Eternal Terminal daemon..."
+sudo systemctl enable --now et
 
 {{ end -}}
