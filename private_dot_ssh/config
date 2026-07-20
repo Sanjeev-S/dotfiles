@@ -5,6 +5,10 @@ Host macmini
     HostName sanjeevs-mac-mini
     User sanjeevsuresh
 
+Host dgx-spark
+    HostName dgx-spark
+    User sanjeevsuresh
+
 Host hetzner-16g-tunnel
     HostName 89.167.110.214
     User root

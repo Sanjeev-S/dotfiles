@@ -100,4 +100,37 @@ NOT stop the CLI-side probe — only the env vars do. We authenticate exclusivel
 `OP_SERVICE_ACCOUNT_TOKEN`, so the desktop-app integration is unused anyway. No
 per-machine setup needed; the fix travels with this repo.
 
-Machine types (`mac-personal`, `mac-dev`, `linux-dev`) drive per-machine config differences via `{{ .machine_type }}` in templates.
+Machine types (`mac-personal`, `mac-dev`, `linux-dev`, `dgx-spark`) drive per-machine config differences via `{{ .machine_type }}` in templates.
+
+## DGX Spark
+
+Complete NVIDIA's first-boot wizard using Ethernet when available. Create the
+`sanjeevsuresh` user and do not interrupt the wizard while it is working. When it
+finishes, use DGX Dashboard to install all OS, driver, and firmware updates before
+continuing, then run:
+
+```bash
+sudo hostnamectl set-hostname dgx-spark
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanjeev-S
+# Choose machine type: dgx-spark
+
+sudo tailscale up --ssh --hostname=dgx-spark
+tailscale status
+tailscale ip
+```
+
+Open the authentication URL printed by `tailscale up`, approve the Spark in the
+tailnet, and connect from a signed-in device:
+
+```bash
+ssh dgx-spark
+```
+
+Tailscale authentication is deliberately not automated: no reusable auth key is
+stored in this repo. If the tailnet uses a custom access policy, it must permit both
+network access and Tailscale SSH to this device.
+
+The `dgx-spark` profile treats the machine as a disposable agent box: it grants the
+account passwordless sudo, disables system sleep, enables Wi-Fi autoconnect with
+power saving disabled, and gives local agents unrestricted tool access. Do not put
+broad personal credentials on this host or advertise home-LAN subnet routes from it.

@@ -21,6 +21,6 @@ alias cx="codex"
 
 # Antigravity CLI: auto-approve tool actions on trusted dev/personal boxes.
 # agy has no settings file — --dangerously-skip-permissions is the only lever (see ADR 0003).
-{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") -}}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") (eq .machine_type "dgx-spark") -}}
 alias agy="agy --dangerously-skip-permissions"
 {{ end -}}

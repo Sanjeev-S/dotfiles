@@ -1,7 +1,7 @@
 model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
-{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") -}}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") (eq .machine_type "dgx-spark") -}}
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 {{ end -}}

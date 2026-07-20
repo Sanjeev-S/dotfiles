@@ -12,7 +12,7 @@ bootstrap-mac.sh
 .ssh/**
 {{ end }}
 
-{{ if eq .machine_type "linux-dev" }}
+{{ if or (eq .machine_type "linux-dev") (eq .machine_type "dgx-spark") }}
 # No LaunchAgents on Linux
 Library/**
 {{ end }}
@@ -22,7 +22,7 @@ Library/**
 Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist
 {{ end }}
 
-{{ if ne .machine_type "linux-dev" }}
+{{ if and (ne .machine_type "linux-dev") (ne .machine_type "dgx-spark") }}
 # systemd-user units only on Linux
 .config/systemd/**
 {{ end }}

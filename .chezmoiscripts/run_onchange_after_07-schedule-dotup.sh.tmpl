@@ -12,7 +12,7 @@ launchctl bootout gui/"$(id -u)" "$PLIST" 2>/dev/null || true
 launchctl bootstrap gui/"$(id -u)" "$PLIST"
 echo "    dotup LaunchAgent loaded (hourly)"
 
-{{ else if eq .machine_type "linux-dev" -}}
+{{ else if or (eq .machine_type "linux-dev") (eq .machine_type "dgx-spark") -}}
 # unit hashes: {{ include "dot_config/systemd/user/dotup.service" | sha256sum }} {{ include "dot_config/systemd/user/dotup.timer" | sha256sum }}
 echo "==> Enabling dotup systemd-user timer..."
 systemctl --user daemon-reload

@@ -21,32 +21,51 @@ fi
 
 {{ else -}}
 echo "==> Installing Linux packages..."
-apt-get update
-apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=()
+else
+  SUDO=(sudo)
+fi
 
+"${SUDO[@]}" apt-get update
+"${SUDO[@]}" apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip
+
+{{ if eq .machine_type "linux-dev" -}}
 # Eternal Terminal
 if ! grep -qr "jgmath2000/et" /etc/apt/sources.list.d/ 2>/dev/null; then
   echo "==> Adding Eternal Terminal PPA..."
-  add-apt-repository -y ppa:jgmath2000/et
-  apt-get update
+  "${SUDO[@]}" add-apt-repository -y ppa:jgmath2000/et
+  "${SUDO[@]}" apt-get update
 fi
-apt-get install -y et
+"${SUDO[@]}" apt-get install -y et
+{{ end -}}
 
 # 1Password CLI
 if ! command -v op &>/dev/null; then
   echo "==> Installing 1Password CLI..."
   curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-    gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+    "${SUDO[@]}" gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
-    tee /etc/apt/sources.list.d/1password.list
-  mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+    "${SUDO[@]}" tee /etc/apt/sources.list.d/1password.list
+  "${SUDO[@]}" mkdir -p /etc/debsig/policies/AC2D62742012EA22/
   curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
-    tee /etc/debsig/policies/AC2D62742012EA22/1password.pol > /dev/null
-  mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22/
+    "${SUDO[@]}" tee /etc/debsig/policies/AC2D62742012EA22/1password.pol > /dev/null
+  "${SUDO[@]}" mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22/
   curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-    gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
-  apt-get update && apt-get install -y 1password-cli
+    "${SUDO[@]}" gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+  "${SUDO[@]}" apt-get update
+  "${SUDO[@]}" apt-get install -y 1password-cli
 fi
+
+{{ if eq .machine_type "dgx-spark" -}}
+# Tailscale supports Ubuntu on arm64. Authentication remains an explicit step so
+# no reusable tailnet credential is stored in this repo.
+if ! command -v tailscale &>/dev/null; then
+  echo "==> Installing Tailscale..."
+  curl -fsSL https://tailscale.com/install.sh | sh
+fi
+"${SUDO[@]}" systemctl enable --now tailscaled
+{{ end -}}
 
 # Starship
 if ! command -v starship &>/dev/null; then

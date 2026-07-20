@@ -1,7 +1,7 @@
 {
   "model": "claude-opus-4-8[1m]",
   "permissions": {
-{{- if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") }}
+{{- if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "dgx-spark") }}
     "defaultMode": "bypassPermissions",
     "allow": [
       "Bash",
