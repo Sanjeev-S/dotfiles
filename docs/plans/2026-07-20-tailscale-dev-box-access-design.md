@@ -19,7 +19,7 @@ config points `macmini` at a LAN-only hostname.
 1. **Mac mini runs the open-source tailscaled system daemon** (brew formula +
    `sudo tailscaled install-system-daemon`), not the GUI app. Boot-time
    connectivity with no user session. See ADR 0004.
-2. **All four machine types get Tailscale installed by the repo.**
+2. **Every tailnet machine type gets Tailscale installed by the repo.**
    `mac-personal`: `brew install --cask --adopt tailscale-app` (adopts the
    hand-installed copy on the Air). `mac-dev`: formula + daemon. `dgx-spark`:
    existing curl install, unchanged. `linux-dev` (Hetzner) installs no
