@@ -137,7 +137,7 @@ sudo systemctl enable --now et
 F=.chezmoiscripts/run_once_after_05-configure-dev-server.sh.tmpl
 for t in mac-personal mac-dev linux-dev dgx-spark; do render "$t" "$F" | bash -n || echo "FAIL $t"; done
 render mac-dev "$F" | grep -c "install-system-daemon"   # expect 1
-render mac-dev "$F" | grep -c "setremotelogin"          # expect 2 (get guard + set line)
+render mac-dev "$F" | grep -c "setremotelogin"          # expect 1 (set line only; the guard uses -getremotelogin)
 render dgx-spark "$F" | grep -c "enable --now et"       # expect 1
 render mac-personal "$F" | grep -c "tailscaled"         # expect 0 (exit 1 = pass)
 ```

@@ -21,8 +21,9 @@ config points `macmini` at a LAN-only hostname.
    connectivity with no user session. See ADR 0004.
 2. **All four machine types get Tailscale installed by the repo.**
    `mac-personal`: `brew install --cask --adopt tailscale-app` (adopts the
-   hand-installed copy on the Air). `mac-dev`: formula + daemon. Linux types:
-   existing curl install, unchanged.
+   hand-installed copy on the Air). `mac-dev`: formula + daemon. `dgx-spark`:
+   existing curl install, unchanged. `linux-dev` (Hetzner) installs no
+   Tailscale, per Non-goals.
 3. **Auth stays manual on every device** (existing policy: no tailnet
    credential in the repo). Each box joins via an interactive `tailscale up`.
 4. **`mac-dev` enables Remote Login** on all interfaces:

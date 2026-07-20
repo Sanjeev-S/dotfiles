@@ -123,6 +123,10 @@ macmini-connect       # et + tmux -CC
 If `systemsetup -setremotelogin on` errors (Full Disk Access), enable Remote
 Login in System Settings > General > Sharing instead.
 
+The daemon runs a copy of the binary at `/usr/local/bin/tailscaled`, not the
+brew-prefix one — after `brew upgrade tailscale`, re-run
+`sudo "$(brew --prefix)/bin/tailscaled" install-system-daemon` to refresh it.
+
 ## DGX Spark
 
 Complete NVIDIA's first-boot wizard using Ethernet when available. Create the
@@ -146,6 +150,8 @@ tailnet, and connect from a signed-in device:
 ```bash
 ssh dgx-spark
 ```
+
+Or one-command: `dgx-spark-connect` (et + tmux -CC), `dgx-spark-herdr` / `dgx-spark-herdr-native` for herdr.
 
 Tailscale authentication is deliberately not automated: no reusable auth key is
 stored in this repo. If the tailnet uses a custom access policy, it must permit both

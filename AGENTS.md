@@ -2,6 +2,8 @@
 
 Cross-platform (macOS + Linux) dotfiles managed by chezmoi with mise for language runtimes and 1Password for secrets.
 
+Canonical vocabulary lives in [CONTEXT.md](CONTEXT.md) — notably "machine type" (not profile) and "dev box".
+
 ## Repo Layout
 
 This repo root IS the chezmoi source directory. Files use chezmoi naming conventions:
