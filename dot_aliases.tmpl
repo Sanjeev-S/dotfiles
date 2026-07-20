@@ -6,7 +6,8 @@ function hetzner-16g-connect() {
     et root@hetzner-16g -c 'tmux -CC new-session -A -s main'
     kill $tunnel_pid 2>/dev/null
 }
-alias macmini-connect="et sanjeevsuresh@sanjeevs-mac-mini -c 'tmux -CC new-session -A -s main'"
+alias macmini-connect="et sanjeevsuresh@macmini -c 'tmux -CC new-session -A -s main'"
+alias dgx-spark-connect="et sanjeevsuresh@dgx-spark -c 'tmux -CC new-session -A -s main'"
 
 # herdr trial (2026-07, see docs/plans/2026-07-12-002-eval-herdr-trial-plan.md)
 function hetzner-16g-herdr() {
@@ -16,6 +17,10 @@ function hetzner-16g-herdr() {
     kill $tunnel_pid 2>/dev/null
 }
 alias hetzner-16g-herdr-native="herdr --remote hetzner-16g"
+
+# Spark herdr needs no tunnel: tailnet boxes get flat network access.
+alias dgx-spark-herdr="et sanjeevsuresh@dgx-spark -c 'herdr'"
+alias dgx-spark-herdr-native="herdr --remote dgx-spark"
 alias cc="claude"
 alias cx="codex"
 
