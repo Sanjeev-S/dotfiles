@@ -2,6 +2,7 @@
 CLAUDE.md
 README.md
 AGENTS.md
+CONTEXT.md
 docs/**
 rotate-op-token.sh
 bootstrap-mac.sh
