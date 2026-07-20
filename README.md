@@ -50,6 +50,7 @@ ssh hetzner-16g -t 'tmux new-session -A -s main'
 | mise | Language runtime manager (Node, Python) | Both |
 | mosh | Mobile-friendly SSH (UDP, roaming) | Both |
 | Eternal Terminal | Auto-reconnecting remote shell | Both |
+| Tailscale | Mesh VPN reaching the dev boxes (manual sign-in per device) | Both |
 | tmux | Terminal multiplexer (persistent sessions) | Both |
 | Oh My Zsh | Zsh plugin framework | Both |
 | Starship | Fast, customizable prompt | Both |
@@ -102,6 +103,26 @@ per-machine setup needed; the fix travels with this repo.
 
 Machine types (`mac-personal`, `mac-dev`, `linux-dev`, `dgx-spark`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
+## Mac mini (mac-dev)
+
+Tailscale runs as the open-source `tailscaled` system daemon — not the GUI app —
+so the box is on the tailnet from boot with nobody logged in (ADR 0004).
+Bring-up or recovery:
+
+```bash
+# On the mini (first time: remove any GUI Tailscale.app after signing out of it)
+chezmoi update        # installs tailscale formula, registers daemon,
+                      # enables Remote Login, starts et
+sudo tailscale up --hostname=macmini
+
+# From any signed-in device
+ssh macmini
+macmini-connect       # et + tmux -CC
+```
+
+If `systemsetup -setremotelogin on` errors (Full Disk Access), enable Remote
+Login in System Settings > General > Sharing instead.
+
 ## DGX Spark
 
 Complete NVIDIA's first-boot wizard using Ethernet when available. Create the
@@ -130,7 +151,7 @@ Tailscale authentication is deliberately not automated: no reusable auth key is
 stored in this repo. If the tailnet uses a custom access policy, it must permit both
 network access and Tailscale SSH to this device.
 
-The `dgx-spark` profile treats the machine as a disposable agent box: it grants the
+The `dgx-spark` machine type treats the box's contents as disposable: it grants the
 account passwordless sudo, disables system sleep, enables Wi-Fi autoconnect with
 power saving disabled, and gives local agents unrestricted tool access. Do not put
 broad personal credentials on this host or advertise home-LAN subnet routes from it.
