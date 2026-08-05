@@ -103,6 +103,31 @@ per-machine setup needed; the fix travels with this repo.
 
 Machine types (`mac-personal`, `mac-dev`, `linux-dev`, `dgx-spark`) drive per-machine config differences via `{{ .machine_type }}` in templates.
 
+## Tailnet one-time setup (admin console)
+
+Two account-level settings make "ssh anytime, no re-auth" hold:
+
+- **Once per device, after it joins:** Machines → device → Disable key expiry.
+  Otherwise the node key forces a browser re-auth every 180 days and the box
+  silently drops off the tailnet.
+- **Once per tailnet:** the policy file's `ssh` section needs an `accept` rule.
+  The default rule's `check` action re-prompts a browser auth every 12h and
+  breaks the non-interactive et bootstrap; a missing `ssh` section denies
+  Tailscale SSH entirely:
+
+```jsonc
+"ssh": [{
+  "action": "accept",
+  "src":    ["autogroup:member"],
+  "dst":    ["autogroup:self"],
+  "users":  ["autogroup:nonroot", "root"]
+}]
+```
+
+`tailscale up` is declarative: re-running it without `--ssh`/`--hostname`
+silently drops those settings — always repeat the full flag set shown in the
+runbooks below.
+
 ## Mac mini (mac-dev)
 
 Tailscale runs as the open-source `tailscaled` system daemon — not the GUI app —
@@ -114,6 +139,7 @@ Bring-up or recovery:
 chezmoi update        # installs tailscale formula, registers daemon,
                       # enables Remote Login, starts et
 sudo tailscale up --hostname=macmini
+# then: disable key expiry for the new device (see Tailnet one-time setup)
 
 # From any signed-in device
 ssh macmini
@@ -140,6 +166,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanje
 # Choose machine type: dgx-spark
 
 sudo tailscale up --ssh --hostname=dgx-spark
+# then: disable key expiry for the new device (see Tailnet one-time setup)
 tailscale status
 tailscale ip
 ```

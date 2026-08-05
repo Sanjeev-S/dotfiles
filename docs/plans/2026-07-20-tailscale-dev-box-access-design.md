@@ -35,7 +35,8 @@ config points `macmini` at a LAN-only hostname.
    fallback path.
 6. **Naming collapses to the ssh alias.** The mini re-joins as
    `--hostname=macmini`; ssh config uses MagicDNS short names (`macmini`,
-   `dgx-spark`). Assumes MagicDNS on and default allow-all ACLs. LAN fallback
+   `dgx-spark`). Assumes MagicDNS on; network ACLs allow-all. Tailscale SSH
+   additionally needs an `ssh` policy `accept` rule (decision 9). LAN fallback
    for the bare name is dropped — physical access covers that failure mode.
 7. **No tunnel entries for tailnet boxes.** The tailnet is flat; localhost-bound
    services use `tailscale serve` or an ad-hoc `ssh -L` when the need actually
@@ -44,6 +45,16 @@ config points `macmini` at a LAN-only hostname.
 8. **Aliases:** retarget `macmini-connect` to `macmini`; add
    `dgx-spark-connect`, `dgx-spark-herdr` (et-wrapped, no tunnel), and
    `dgx-spark-herdr-native`, mirroring the Hetzner pair.
+9. **Durable, prompt-free access is policy, not defaults** (added 2026-08-04).
+   Two account-level settings make "ssh anytime, no re-auth" true: per-device
+   *disable key expiry* — otherwise node keys force a browser re-auth every
+   180 days, the original mini failure on a timer — and an `ssh` section
+   `accept` rule in the tailnet policy for member→self. A missing `ssh`
+   section denies Tailscale SSH outright; the default rule's `check` action
+   forces a browser re-auth every 12h and breaks the non-interactive et
+   bootstrap. Server-side ssh trust is repo-managed: `.ssh/authorized_keys`
+   deploys to every machine (public keys are not secrets); only the client
+   `config` stays mac-personal.
 
 ## Changes by file
 
@@ -83,5 +94,6 @@ screen and confirm it reappears on the tailnet without anyone logging in.
 
 ## Non-goals
 
-Hetzner boxes stay off the tailnet and keep their tunnel entries. No auth
-keys or ACL changes. No herdr verdict — aliases only.
+Hetzner boxes stay off the tailnet and keep their tunnel entries. No reusable
+tailnet auth keys (pre-auth credentials) in the repo — sign-in stays
+interactive per device. No herdr verdict — aliases only.
