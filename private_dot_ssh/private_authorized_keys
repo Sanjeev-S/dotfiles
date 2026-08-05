@@ -1,0 +1,3 @@
+# Keys allowed to ssh into this machine as this user. Managed by chezmoi —
+# add keys here, not by hand on the box. Public keys are not secrets.
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM7UFblY3Ruks3HMyZnLjNfXHXW3jP7x7OpfwBmh3RrG Hetzner SSH Keys
