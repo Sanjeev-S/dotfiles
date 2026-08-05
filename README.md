@@ -138,7 +138,7 @@ Bring-up or recovery:
 # On the mini (first time: remove any GUI Tailscale.app after signing out of it)
 chezmoi update        # installs tailscale formula, registers daemon,
                       # enables Remote Login, starts et
-sudo tailscale up --hostname=macmini
+sudo tailscale up --ssh --hostname=macmini
 # then: disable key expiry for the new device (see Tailnet one-time setup)
 
 # From any signed-in device

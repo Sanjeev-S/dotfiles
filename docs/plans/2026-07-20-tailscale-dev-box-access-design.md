@@ -52,9 +52,12 @@ config points `macmini` at a LAN-only hostname.
    `accept` rule in the tailnet policy for member→self. A missing `ssh`
    section denies Tailscale SSH outright; the default rule's `check` action
    forces a browser re-auth every 12h and breaks the non-interactive et
-   bootstrap. Server-side ssh trust is repo-managed: `.ssh/authorized_keys`
-   deploys to every machine (public keys are not secrets); only the client
-   `config` stays mac-personal.
+   bootstrap. Both dev boxes run Tailscale SSH (`up --ssh`, supported on the
+   mini's tailscaled variant): one model over the tailnet — device identity,
+   no per-client keys. Server-side ssh trust is additionally repo-managed:
+   `.ssh/authorized_keys` deploys to every machine (public keys are not
+   secrets) as the LAN/recovery path; only the client `config` stays
+   mac-personal.
 
 ## Changes by file
 
@@ -76,7 +79,7 @@ config points `macmini` at a LAN-only hostname.
 **Mac mini recovery/bring-up:** sign out of and quit the GUI Tailscale app,
 delete `/Applications/Tailscale.app` → `chezmoi update` (installs formula,
 registers daemon, enables Remote Login, restarts et) →
-`sudo tailscale up --hostname=macmini` and authenticate in the browser →
+`sudo tailscale up --ssh --hostname=macmini` and authenticate in the browser →
 from the Air: `ssh macmini`, then `macmini-connect`.
 
 **dgx-spark:** unchanged existing flow (`tailscale up --ssh
