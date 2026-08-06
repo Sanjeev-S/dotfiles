@@ -9,7 +9,12 @@ sudo pmset -a disablesleep 1
 sudo pmset -a autorestart 1
 
 echo "==> Starting Eternal Terminal daemon..."
-sudo brew services start et
+# restart, not start: recovers a bootstrapped-but-dead job, where plain
+# `launchctl bootstrap` exits EIO 5. Skip when healthy so re-applies don't
+# bounce live et sessions.
+if ! pgrep -q etserver; then
+  sudo brew services restart et
+fi
 
 echo "==> Registering Tailscale system daemon..."
 if [ ! -f /Library/LaunchDaemons/com.tailscale.tailscaled.plist ]; then
