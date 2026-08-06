@@ -155,9 +155,28 @@ brew-prefix one — after `brew upgrade tailscale`, re-run
 
 ## DGX Spark
 
-Complete NVIDIA's first-boot wizard using Ethernet when available. Create the
-`sanjeevsuresh` user and do not interrupt the wizard while it is working. When it
-finishes, use DGX Dashboard to install all OS, driver, and firmware updates before
+The Spark boots the instant power is connected and has no status LED — fans are
+the only sign it is on. Complete NVIDIA's first-boot wizard using Ethernet when
+available. Create the `sanjeevsuresh` user and do not interrupt the wizard while
+it is working.
+
+**A screen is needed exactly once.** The wizard's monitor-free path (a `spark-…`
+Wi-Fi hotspot serving a captive-portal setup page) exists only until setup
+completes; afterwards the box runs no sshd and no web portal, so nothing remote
+can reach it. Recovering that state means a full USB re-image, which itself
+requires a display and keyboard, so a one-time HDMI session is always the
+cheaper path. After the bootstrap below installs sshd, the screen is never
+needed again.
+
+Ubuntu's automatic updater grabs the dpkg lock as soon as the box gets internet;
+`chezmoi init` then fails with "could not get lock". Wait it out — never delete
+the lock file:
+
+```bash
+while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 10; done
+```
+
+Use DGX Dashboard to install all OS, driver, and firmware updates before
 continuing, then run:
 
 ```bash
@@ -169,6 +188,15 @@ sudo tailscale up --ssh --hostname=dgx-spark
 # then: disable key expiry for the new device (see Tailnet one-time setup)
 tailscale status
 tailscale ip
+```
+
+Only the first two commands need the console. Once sshd is up, the rest can be
+driven over LAN ssh from another machine — the repo's `authorized_keys` and
+passwordless sudo are already in place, and `tailscale up` prints its URL to a
+log you can read remotely:
+
+```bash
+ssh sanjeevsuresh@<lan-ip> 'nohup sudo tailscale up --ssh --hostname=dgx-spark > /tmp/tsup.log 2>&1 & sleep 10; cat /tmp/tsup.log'
 ```
 
 Open the authentication URL printed by `tailscale up`, approve the Spark in the
