@@ -39,7 +39,7 @@ else
 fi
 
 "${SUDO[@]}" apt-get update
-"${SUDO[@]}" apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip
+"${SUDO[@]}" apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip openssh-server
 
 {{ if or (eq .machine_type "linux-dev") (eq .machine_type "dgx-spark") -}}
 # Eternal Terminal
