@@ -42,7 +42,17 @@ sudo visudo -cf /etc/sudoers.d/90-dgx-spark-agent
 sudo hostnamectl set-hostname dgx-spark
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
-# DGX OS may not ship NetworkManager — skip tuning where nmcli is absent.
+# Headless boxes have no secret agent: when NetworkManager exhausts its default
+# 4 retries it waits for a human to re-type the Wi-Fi password in a graphical
+# session, and the box stays off the network until someone power-cycles it.
+# Observed 2026-08-11: a driver-side deauth stranded the Spark for 12 hours.
+sudo tee /etc/NetworkManager/conf.d/99-headless-retry.conf >/dev/null <<'EOF'
+[connection]
+autoconnect-retries=0
+EOF
+sudo systemctl reload NetworkManager 2>/dev/null || true
+
+# Guard kept for non-NetworkManager images; DGX OS 7.x does ship nmcli.
 if command -v nmcli >/dev/null 2>&1; then
   WIFI_CONNECTION=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2 == "802-11-wireless" { print $1; exit }')
   if [ -n "$WIFI_CONNECTION" ]; then
