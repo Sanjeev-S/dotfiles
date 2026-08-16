@@ -156,8 +156,9 @@ brew-prefix one — after `brew upgrade tailscale`, re-run
 ## DGX Spark
 
 The Spark boots the instant power is connected and has no status LED — fans are
-the only sign it is on. Complete NVIDIA's first-boot wizard using Ethernet when
-available. Create the `sanjeevsuresh` user and do not interrupt the wizard while
+the only sign it is on. Complete NVIDIA's first-boot wizard over Ethernet — the
+box's standing primary link, not just a setup convenience; Wi-Fi is fallback-only
+(ADR 0005). Create the `sanjeevsuresh` user and do not interrupt the wizard while
 it is working.
 
 **A screen is needed exactly once.** The wizard's monitor-free path (a `spark-…`
