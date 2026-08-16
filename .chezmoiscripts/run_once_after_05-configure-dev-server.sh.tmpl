@@ -42,15 +42,17 @@ sudo visudo -cf /etc/sudoers.d/90-dgx-spark-agent
 sudo hostnamectl set-hostname dgx-spark
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
-# Headless boxes have no secret agent: when NetworkManager exhausts its default
-# 4 retries it waits for a human to re-type the Wi-Fi password in a graphical
-# session, and the box stays off the network until someone power-cycles it.
-# Observed 2026-08-11: a driver-side deauth stranded the Spark for 12 hours.
-sudo tee /etc/NetworkManager/conf.d/99-headless-retry.conf >/dev/null <<'EOF'
-[connection]
-autoconnect-retries=0
-EOF
-sudo systemctl reload NetworkManager 2>/dev/null || true
+# Wire this box up over Ethernet. Its MT7925 Wi-Fi firmware resets roughly twice
+# a day (a known MLO/6GHz defect, NVIDIA bug open as of 2026-08); the chip then
+# re-associates to a WPA2 BSS and fails the 4-way handshake. NetworkManager 1.46
+# reads any handshake failure as a wrong password, re-requests secrets with a flag
+# that ignores the stored PSK, and — finding no secret agent on a headless box —
+# sets a sticky NO_SECRETS autoconnect block that nothing short of a reboot
+# clears. That stranded the Spark four times in 60 days, for up to 2.7 days each.
+# A previous fix here (conf.d autoconnect-retries=0) was a no-op: invalid key,
+# and retry counts do not clear a NO_SECRETS block. Ethernet removes the
+# dependency entirely; Wi-Fi stays configured as a higher-metric fallback.
+sudo rm -f /etc/NetworkManager/conf.d/99-headless-retry.conf
 
 # Guard kept for non-NetworkManager images; DGX OS 7.x does ship nmcli.
 if command -v nmcli >/dev/null 2>&1; then
