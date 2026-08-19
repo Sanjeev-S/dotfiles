@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v agent &>/dev/null; then
+  echo "==> Cursor agent CLI already installed; updates handled by dotup"
+  exit 0
+fi
+
+echo "==> Installing Cursor agent CLI..."
+# Official installer drops `agent` at ~/.local/bin (macOS + Linux, including
+# aarch64). Used for My Machines (`agent worker start`). Not Cursor.app.
+# The installer may append PATH lines to ~/.zshrc; chezmoi rewrites that file
+# from dot_zshrc.tmpl, and PATH already comes from dot_zshenv.tmpl.
+curl -fsSL https://cursor.com/install | bash
+
+if command -v agent &>/dev/null; then
+  echo "==> Cursor agent CLI installed ($(agent --version 2>/dev/null || echo ok))"
+else
+  echo "    WARNING: agent not found after install"
+fi
