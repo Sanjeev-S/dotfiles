@@ -96,7 +96,7 @@ invocation reads the 1Password desktop app's settings from its protected group c
 (`~/Library/Group Containers/2BUA8C4S2C.com.1password` — hardcoded in the `op` binary),
 which fires a macOS TCC prompt ("op would like to access data from other apps"). Under
 launchd (`dotup`) that grant can't persist for an unbundled CLI, so it used to re-prompt
-on each of the 9 daily reads. Disabling "Integrate with 1Password CLI" in the app does
+on each of the 10 daily reads. Disabling "Integrate with 1Password CLI" in the app does
 NOT stop the CLI-side probe — only the env vars do. We authenticate exclusively with
 `OP_SERVICE_ACCOUNT_TOKEN`, so the desktop-app integration is unused anyway. No
 per-machine setup needed; the fix travels with this repo.
