@@ -44,7 +44,7 @@ ssh hetzner-16g -t 'tmux new-session -A -s main'
 
 | Tool | Purpose | Platform |
 |------|---------|----------|
-| Claude Code | AI coding assistant + plugins (superpowers, compound-engineering) | Both |
+| Claude Code | AI coding assistant | Both |
 | Codex | OpenAI Codex CLI + Matt Pocock skills | Both |
 | Composio CLI | Connect coding agents to external app toolkits | Both |
 | mise | Language runtime manager (Node, Python) | Both |

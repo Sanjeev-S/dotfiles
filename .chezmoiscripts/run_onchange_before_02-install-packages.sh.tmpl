@@ -84,7 +84,7 @@ if ! command -v starship &>/dev/null; then
   curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
 
-# Bun (required by gstack)
+# Bun (also installed via brew on macOS above)
 if ! command -v bun &>/dev/null; then
   echo "==> Installing Bun..."
   curl -fsSL https://bun.sh/install | bash

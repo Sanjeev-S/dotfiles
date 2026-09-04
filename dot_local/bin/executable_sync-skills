@@ -1,21 +1,26 @@
 #!/usr/bin/env bash
-# Daily refresh for external Claude Code skill/plugin sources.
+# Daily refresh for external skill sources.
 # Called from dotup; on any sub-step failure, exits 1 so the zsh banner
-# names "skills" as the failed step. Missing tools (claude, bun) are
-# silently skipped — not counted as failures.
+# names "skills" as the failed step. Missing tools (npx) are silently
+# skipped — not counted as failures.
 #
-# Plugin updates: `claude plugin update` lands the new binary immediately
-# but activation defers to the next Claude Code restart.
+# npx skills: ensure desired GitHub packages are installed globally for
+# Claude / Codex / Cursor, then `npx skills update -g -y` refreshes via
+# the lockfile at ~/.agents/.skill-lock.json.
 
 set -uo pipefail
 
-# bun and claude land in non-standard PATH entries during install. dotup runs
-# us from a systemd/launchd-minimal env, so make sure both are findable.
-export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+# mise-managed npx lands in a non-standard PATH entry. dotup runs us from a
+# systemd/launchd-minimal env, so make it findable.
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
 
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 CODEX_SKILLS_DIR="$HOME/.codex/skills"
+CURSOR_SKILLS_DIR="$HOME/.cursor/skills"
 failed=()
+
+# Agents that receive npx-installed skills (skills CLI agent ids).
+NPX_SKILLS_AGENTS=(claude-code codex cursor)
 
 run_step() {
   local name="$1"; shift
@@ -30,25 +35,40 @@ run_step() {
   fi
 }
 
-# --- Claude Code plugins ---
-if command -v claude >/dev/null 2>&1; then
-  run_step marketplace-catalog claude plugin marketplace update
-  run_step superpowers claude plugin update superpowers@superpowers-marketplace
-  run_step compound-engineering claude plugin update compound-engineering@compound-engineering-plugin
-else
-  echo "==> [plugins] skipped (claude not in PATH)"
-fi
+npx_skill_present() {
+  local name="$1"
+  # Canonical store is ~/.agents/skills/; Claude gets a symlink, Cursor/Codex
+  # load the universal dir directly.
+  [ -e "$HOME/.agents/skills/$name" ] \
+    || [ -e "$CLAUDE_SKILLS_DIR/$name" ] \
+    || [ -e "$CODEX_SKILLS_DIR/$name" ] \
+    || [ -e "$CURSOR_SKILLS_DIR/$name" ]
+}
 
-# --- gstack ---
-if [ -d "$CLAUDE_SKILLS_DIR/gstack/.git" ]; then
-  if run_step gstack-pull git -C "$CLAUDE_SKILLS_DIR/gstack" pull --ff-only --quiet; then
-    if command -v bun >/dev/null 2>&1; then
-      run_step gstack-setup "$CLAUDE_SKILLS_DIR/gstack/setup" -q --no-team
-    else
-      echo "==> [gstack-setup] skipped (bun not in PATH)"
-    fi
+# Install a GitHub skill package if a sentinel skill is missing.
+# Args: step-name sentinel-skill source [skills-cli --skill args...]
+ensure_npx_skill_pkg() {
+  local step="$1"
+  local sentinel="$2"
+  local source="$3"
+  shift 3
+
+  if npx_skill_present "$sentinel"; then
+    echo "==> [$step] already present ($sentinel)"
+    return 0
   fi
-fi
+
+  local agent_args=()
+  local agent
+  for agent in "${NPX_SKILLS_AGENTS[@]}"; do
+    agent_args+=(--agent "$agent")
+  done
+
+  run_step "$step" npx -y skills add "$source" \
+    -g -y \
+    "${agent_args[@]}" \
+    "$@"
+}
 
 # --- mattpocock-skills ---
 # (Stale in-skills clones from older installs are removed by the cleanups
@@ -103,6 +123,27 @@ if [ -d "$MP_REPO/skills" ]; then
       failed+=("matt-link-$target")
     fi
   done
+fi
+
+# --- npx skills (Agent Skills ecosystem) ---
+# First run installs missing packages; every run refreshes via lockfile hashes.
+if command -v npx >/dev/null 2>&1; then
+  # deer-flow ships many skills — pin academic-paper-review only.
+  ensure_npx_skill_pkg npx-deer-flow-review academic-paper-review \
+    bytedance/deer-flow --skill academic-paper-review
+
+  # paper-craft: paper-analyzer, paper-comic, paper-deck
+  ensure_npx_skill_pkg npx-paper-craft paper-analyzer \
+    zsyggg/paper-craft-skills --skill '*'
+
+  # academic-research-skills: deep-research, academic-paper,
+  # academic-paper-reviewer, academic-pipeline
+  ensure_npx_skill_pkg npx-academic-research deep-research \
+    Imbad0202/academic-research-skills --skill '*'
+
+  run_step npx-skills-update npx -y skills update -g -y
+else
+  echo "==> [npx-skills] skipped (npx not in PATH)"
 fi
 
 if [ "${#failed[@]}" -gt 0 ]; then

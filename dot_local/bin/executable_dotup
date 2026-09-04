@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Update dotfiles, Claude Code, Codex CLI, Cursor agent CLI, and Matt Pocock skills.
+# Update dotfiles, Claude Code, Codex CLI, Cursor agent CLI, and external skills.
 # Runs hourly via launchd/systemd-user; no-ops if successful run < 24h ago.
 # Failure surfaces as a banner in zsh sessions; see ADR 0001.
 

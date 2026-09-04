@@ -25,3 +25,49 @@ if [ -f "$HOME/bootstrap-mac.sh" ]; then
   echo "==> [cleanup] removing stray ~/bootstrap-mac.sh"
   rm -f "$HOME/bootstrap-mac.sh"
 fi
+
+# 2026-09: remove retired Claude plugins (superpowers, compound-engineering)
+# and gstack. Idempotent — safe on machines that never had them.
+remove_path() {
+  local path="$1"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    echo "==> [cleanup] removing $path"
+    rm -rf "$path"
+  fi
+}
+
+for path in \
+  "$HOME/.claude/plugins/cache/superpowers-marketplace" \
+  "$HOME/.claude/plugins/cache/compound-engineering-plugin" \
+  "$HOME/.claude/plugins/marketplaces/superpowers-marketplace" \
+  "$HOME/.claude/plugins/marketplaces/compound-engineering-plugin" \
+  "$HOME/.claude/plugins/marketplaces/every-marketplace"
+do
+  remove_path "$path"
+done
+
+# Drop gstack clone, command helper, and any real skill dirs whose SKILL.md
+# still references gstack. Keep Matt / npx symlinks untouched.
+SKILLS_DIR="$HOME/.claude/skills"
+if [ -d "$SKILLS_DIR" ]; then
+  for entry in "$SKILLS_DIR"/*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    name="$(basename "$entry")"
+
+    case "$name" in
+      gstack|_gstack-command)
+        remove_path "$entry"
+        continue
+        ;;
+    esac
+
+    # Symlinks (Matt, npx) — leave alone.
+    [ -L "$entry" ] && continue
+    [ -d "$entry" ] || continue
+    [ -f "$entry/SKILL.md" ] || continue
+
+    if grep -Eqi 'gstack|garrytan/gstack' "$entry/SKILL.md" 2>/dev/null; then
+      remove_path "$entry"
+    fi
+  done
+fi

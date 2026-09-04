@@ -1,6 +1,5 @@
 # Notification Suppression Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Suppress Claude Code ntfy notifications when the user is actively watching the terminal.
 

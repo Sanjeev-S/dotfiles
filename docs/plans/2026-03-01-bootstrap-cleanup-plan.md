@@ -1,6 +1,5 @@
 # Bootstrap Script Cleanup — Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Clean up `bootstrap.sh` to remove stale messages, deduplicate blocks, drop full system upgrades, guard the ET PPA, and make Claude Code install cross-platform.
 

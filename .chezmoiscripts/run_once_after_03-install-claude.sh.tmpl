@@ -4,35 +4,13 @@ set -euo pipefail
 echo "==> Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
 
-export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
-if command -v claude &>/dev/null; then
-  echo "==> Installing Claude Code plugins..."
-  claude plugin marketplace add obra/superpowers-marketplace 2>/dev/null || true
-  claude plugin marketplace add EveryInc/every-marketplace 2>/dev/null || true
-  claude plugin install superpowers@superpowers-marketplace
-  claude plugin install compound-engineering@compound-engineering-plugin
-else
-  echo "    Skipping Claude plugins (claude not found in PATH)"
-fi
+# Skills dirs for Claude; Matt Pocock + npx packages are installed/refreshed
+# by sync-skills (called here and again from dotup).
+mkdir -p "$HOME/.claude/skills"
 
-# ── Non-marketplace skills (cloned directly into ~/.claude/skills) ──
-# Daily refresh (git pull, gstack ./setup, matt symlink loop) is delegated
-# to sync-skills, called at the end of this script and again from dotup.
-SKILLS_DIR="$HOME/.claude/skills"
-mkdir -p "$SKILLS_DIR"
-
-if [ ! -d "$SKILLS_DIR/gstack/.git" ]; then
-  echo "==> Cloning gstack..."
-  git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$SKILLS_DIR/gstack"
-fi
-
-# mattpocock/skills is cloned to ~/.local/share (NOT inside skills/) and
-# symlinked into both Claude and Codex by sync-skills, which also self-clones
-# if the repo is missing — so no explicit clone is needed here.
-
-# Build gstack's browse binary + clone/link Matt Pocock skills + bring
+# Clone/link Matt Pocock skills + ensure npx skill packages + bring
 # everything to latest. Failures are reported by sync-skills' own output and
 # don't abort the apply.
 "$HOME/.local/bin/sync-skills" || true
-

@@ -1,6 +1,5 @@
 # Chezmoi Migration Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Migrate dotfiles from custom symlink-based bootstrap.sh to chezmoi + mise + 1Password, with Claude Code and Codex agent configs.
 

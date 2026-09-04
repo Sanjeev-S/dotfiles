@@ -1,6 +1,5 @@
 # Tailscale Dev-Box Access Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the Mac mini (`mac-dev`) and `dgx-spark` reachable over the tailnet with one-command connect aliases, everything reproducible from this repo except the per-device `tailscale up` sign-in.
 
