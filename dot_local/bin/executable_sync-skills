@@ -132,10 +132,6 @@ if command -v npx >/dev/null 2>&1; then
   ensure_npx_skill_pkg npx-deer-flow-review academic-paper-review \
     bytedance/deer-flow --skill academic-paper-review
 
-  # paper-craft: paper-analyzer, paper-comic, paper-deck
-  ensure_npx_skill_pkg npx-paper-craft paper-analyzer \
-    zsyggg/paper-craft-skills --skill '*'
-
   # academic-research-skills: deep-research, academic-paper,
   # academic-paper-reviewer, academic-pipeline
   ensure_npx_skill_pkg npx-academic-research deep-research \

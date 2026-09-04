@@ -71,3 +71,15 @@ if [ -d "$SKILLS_DIR" ]; then
     fi
   done
 fi
+
+# 2026-09: drop Chinese-authored paper-craft-skills (no English SKILL.md upstream).
+for name in paper-analyzer paper-comic paper-deck; do
+  for root in \
+    "$HOME/.agents/skills" \
+    "$HOME/.claude/skills" \
+    "$HOME/.codex/skills" \
+    "$HOME/.cursor/skills"
+  do
+    remove_path "$root/$name"
+  done
+done
