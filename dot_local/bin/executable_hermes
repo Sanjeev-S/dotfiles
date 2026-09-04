@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Root-side orchestration wrapper: run the Hermes CLI as the unprivileged
+# `hermes` service user (upstream refuses a root gateway; see ADR 0006).
+# Keeps `ssh hetzner-16g hermes ...` working unchanged from other machines.
+# Deployed on linux-dev only — on mac-dev, ~/.local/bin/hermes is the real
+# Hermes binary placed by its installer (see .chezmoiignore).
+exec runuser -u hermes -- /home/hermes/.local/bin/hermes "$@"

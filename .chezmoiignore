@@ -30,3 +30,10 @@ Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist
 # systemd-user units only on Linux
 .config/systemd/**
 {{ end }}
+
+{{ if ne .machine_type "linux-dev" }}
+# Root-side wrapper that runs the Hermes CLI as the `hermes` service user is
+# linux-dev only. On mac-dev, ~/.local/bin/hermes is the REAL Hermes binary
+# placed by its installer — chezmoi must never manage or overwrite it there.
+.local/bin/hermes
+{{ end }}

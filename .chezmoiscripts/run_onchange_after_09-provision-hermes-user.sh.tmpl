@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .machine_type "linux-dev" -}}
+# Provision the unprivileged `hermes` service user that runs the personal
+# Hermes Agent gateway (upstream refuses a root gateway — ADR 0006). Root
+# provisions the account; the agent home is self-contained and deliberately
+# NOT chezmoi-managed. Idempotent: every step guards or is safe to re-run.
+
+echo "==> Provisioning hermes service user..."
+if ! id hermes &>/dev/null; then
+  adduser --disabled-password --gecos "Hermes Agent service user" hermes
+fi
+# Locked password + no SSH keys + no sudo: the only way in is root's runuser.
+passwd -l hermes >/dev/null
+# systemd user manager from boot with no login session (gateway is a user unit).
+loginctl enable-linger hermes
+
+if ! sudo -iu hermes bash -c 'test -x ~/.local/bin/hermes'; then
+  echo "==> Installing Hermes Agent for hermes user (official installer)..."
+  # --skip-setup: no TTY wizard; --skip-computer-use: headless box, no GUI stack.
+  sudo -iu hermes bash -c \
+    'curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --skip-setup --skip-computer-use'
+fi
+
+# Secrets are NOT handled here: the agent uses a scoped 1Password service
+# account (vault: Hermes-Personal) wired once, interactively, by the operator:
+#   ssh -t hetzner-16g sudo -iu hermes hermes secrets onepassword setup
+# .env then carries op:// references only. Never bake tokens into this repo.
+
+echo "==> hermes service user ready"
+{{ end -}}

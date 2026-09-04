@@ -24,6 +24,12 @@ alias dgx-spark-herdr-native="herdr --remote dgx-spark"
 alias cc="claude"
 alias cx="codex"
 
+# Personal Hermes gateway on Hetzner runs as the `hermes` service user; root's
+# wrapper (dot_local/bin/executable_hermes, linux-dev only) does the uid hop,
+# so `hermes-hetzner gateway status|restart|stop` etc. work from anywhere. ADR 0006.
+alias hermes-hetzner="ssh hetzner-16g hermes"
+alias hermes-hetzner-logs="ssh hetzner-16g -- runuser -u hermes -- tail -n 50 /home/hermes/.hermes/logs/gateway.log"
+
 # Antigravity CLI: auto-approve tool actions on trusted dev/personal boxes.
 # agy has no settings file — --dangerously-skip-permissions is the only lever (see ADR 0003).
 {{ if or (eq .machine_type "linux-dev") (eq .machine_type "mac-dev") (eq .machine_type "mac-personal") (eq .machine_type "dgx-spark") -}}
