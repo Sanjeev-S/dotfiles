@@ -23,6 +23,11 @@ dotup --force        # update chezmoi + Claude + Codex + Matt Pocock skills now
 
 Scheduled: `dotup` runs hourly (launchd on macOS, systemd-user on Linux) and no-ops if a successful run happened in the last 24h. On any step failure, a banner appears in new zsh sessions until the next clean run. See `docs/adr/0001-dotup-scheduling-architecture.md`.
 
+Overlapping runs skip, including `dotup --force`; the run lock releases automatically
+when the running processes exit. On the personal Mac, existing Tailscale app installs
+are left alone because cask upgrades require an administrator password. Update
+Tailscale interactively through the app or `brew upgrade --cask tailscale-app`.
+
 ## Connecting
 
 ### Mac (iTerm2 native tabs via ET + tmux -CC)

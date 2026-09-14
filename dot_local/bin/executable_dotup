@@ -10,7 +10,25 @@ LAST_SUCCESS="$STATE_DIR/last-success"
 LAST_FAILURE="$STATE_DIR/last-failure"
 RUN_LOG="$STATE_DIR/last-run.log"
 
-mkdir -p "$STATE_DIR"
+mkdir -p "$STATE_DIR" || exit 1
+
+# Lock before checking freshness or opening the shared log. Keep this file:
+# the kernel releases the lock when the last inherited descriptor closes.
+exec 9>>"$STATE_DIR/run.lock" || exit 1
+if [ "$(uname -s)" = "Darwin" ]; then
+  lock_command=(/usr/bin/lockf -s -t 0)
+else
+  lock_command=(flock -n -E 75)
+fi
+"${lock_command[@]}" 9
+lock_status=$?
+if [ "$lock_status" -eq 75 ]; then
+  echo "dotup: skipped (another run is active)"
+  exit 0
+elif [ "$lock_status" -ne 0 ]; then
+  echo "dotup: unable to acquire run lock (exit $lock_status)" >&2
+  exit "$lock_status"
+fi
 
 force=0
 if [ "${1:-}" = "--force" ]; then

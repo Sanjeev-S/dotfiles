@@ -18,8 +18,9 @@ brew install --cask 1password-cli
 # the dev-server script; auth stays a manual `tailscale up`. See ADR 0004.
 brew install tailscale
 {{ else -}}
-# GUI app for the interactive laptop. --adopt takes over a hand-installed copy.
-brew install --cask --adopt tailscale-app
+# GUI app for the interactive laptop. Upgrading this cask invokes sudo, which
+# fails under launchd. Leave existing installations to interactive app updates.
+[ -d /Applications/Tailscale.app ] || brew install --cask --adopt tailscale-app
 {{ end -}}
 
 echo "==> Configuring iTerm2..."
