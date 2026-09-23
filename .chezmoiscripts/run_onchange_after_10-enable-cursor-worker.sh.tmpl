@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{ if eq .machine_type "dgx-spark" -}}
+# unit hash: {{ include "dot_config/systemd/user/cursor-worker.service" | sha256sum }}
+echo "==> Enabling cursor-worker systemd-user service..."
+
+# A worker started by hand (nohup/tmux) would fight the service over the same
+# worker ID and worker.lock; stop it before the service takes over.
+if ! systemctl --user is-active --quiet cursor-worker.service; then
+  pkill -u "$USER" -f 'cursor-agent/versions/.*/index.js worker start' || true
+fi
+
+systemctl --user daemon-reload
+systemctl --user enable cursor-worker.service
+systemctl --user restart cursor-worker.service
+echo "    cursor-worker.service running"
+{{ end -}}

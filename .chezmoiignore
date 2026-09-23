@@ -31,6 +31,11 @@ Library/LaunchAgents/com.sanjeev.ntfy-subscriber.plist
 .config/systemd/**
 {{ end }}
 
+{{ if ne .machine_type "dgx-spark" }}
+# Cursor My Machines worker runs as a service on the Spark only
+.config/systemd/user/cursor-worker.service
+{{ end }}
+
 {{ if ne .machine_type "linux-dev" }}
 # Root-side wrapper that runs the Hermes CLI as the `hermes` service user is
 # linux-dev only. On mac-dev, ~/.local/bin/hermes is the REAL Hermes binary
