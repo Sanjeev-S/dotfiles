@@ -1,0 +1,55 @@
+onboarding = false
+
+[update]
+channel = "stable"
+version_check = true
+manifest_check = true
+
+[keys]
+prefix = "ctrl+a"
+new_tab = "prefix+t"
+previous_tab = "prefix+["
+next_tab = "prefix+]"
+copy_mode = "prefix+c"
+split_vertical = "prefix+d"
+split_horizontal = "prefix+shift+d"
+focus_pane_left = "prefix+left"
+focus_pane_down = "prefix+down"
+focus_pane_up = "prefix+up"
+focus_pane_right = "prefix+right"
+zoom = "prefix+shift+enter"
+close_pane = "prefix+w"
+close_tab = "prefix+ctrl+w"
+close_workspace = "prefix+shift+w"
+workspace_picker = "prefix+space"
+rename_workspace = "prefix+ctrl+r"
+resize_mode = ["prefix+r", "ctrl+alt+r"]
+
+[ui]
+mouse_capture = true
+
+[ui.toast]
+delivery = "terminal"
+
+[ui.sound]
+enabled = false
+
+[remote]
+manage_ssh_config = true
+
+[session]
+resume_agents_on_restore = true
+
+[experimental]
+pane_history = false
+allow_nested = false
+
+[[keys.command]]
+key = "prefix+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+
+[[keys.command]]
+key = "prefix+v"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"

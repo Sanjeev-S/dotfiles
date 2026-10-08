@@ -19,6 +19,8 @@ bootstrap-mac.sh
 Library/**
 # Karabiner-Elements is macOS-only
 .config/karabiner/**
+# Ghostty is the Mac frontend; dev boxes run the Herdr server.
+.config/ghostty/**
 {{ end }}
 
 {{ if ne .machine_type "mac-personal" }}

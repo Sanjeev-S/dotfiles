@@ -1,0 +1,4 @@
+# Herdr owns its panes and machines; run `herdr` from the shell.
+font-family = JetBrainsMono Nerd Font
+font-size = 13
+desktop-notifications = true

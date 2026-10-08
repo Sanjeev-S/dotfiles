@@ -30,6 +30,31 @@ Tailscale interactively through the app or `brew upgrade --cask tailscale-app`.
 
 ## Connecting
 
+### Mac (Ghostty + Herdr)
+
+Open Ghostty and run `herdr`. Local, Mac mini, DGX Spark, and Hetzner appear in
+one sidebar. Additional machines saved with `herdr machine add <ssh-host>` join
+the same interface automatically; no per-host launcher is needed.
+
+Chezmoi manages `~/.config/herdr/config.toml`, Ghostty's config, the rendering
+dependencies, and both plugins: `smarzban/herdr-file-viewer` (v1.17.0) and
+`persiyanov/herdr-reviewr` (v0.46.0). Plugin versions are pinned to published
+releases. Linux ARM64 builds file viewer with mise-managed Rust 1.96.0 because
+upstream has no binary for that platform. Ubuntu's `batcat` is exposed as `bat`.
+
+Provision the dev boxes before applying on a fresh personal Mac: its after hook
+seeds Herdr's machine catalog over SSH. Existing saved entries are preserved.
+The catalog, session state, and plugin registry remain Herdr-owned runtime data.
+`herdr machine status --json` checks connectivity.
+
+The prefix is **Ctrl+A**: Space selects a workspace, T creates a tab, D splits
+vertically, Shift+D splits horizontally, F opens Files, and V toggles reviewr.
+Plugin command tables stay at the end of the shared TOML config.
+
+Hetzner uses the `main` session to preserve the earlier 0.7.3 `default` session
+and its running Claude pane. Updating a binary does not replace a running
+server; stop/restart an older session only when its work can be interrupted.
+
 ### Mac (iTerm2 native tabs via ET + tmux -CC)
 ```bash
 et root@hetzner-16g -c 'tmux -CC new-session -A -s main'
@@ -57,12 +82,14 @@ ssh hetzner-16g -t 'tmux new-session -A -s main'
 | Eternal Terminal | Auto-reconnecting remote shell | Both |
 | Tailscale | Mesh VPN reaching the dev boxes (manual sign-in per device) | Both |
 | tmux | Terminal multiplexer (persistent sessions) | Both |
+| Herdr | Persistent agent workspaces across Local and saved dev boxes | Both |
 | Oh My Zsh | Zsh plugin framework | Both |
 | Starship | Fast, customizable prompt | Both |
 | zsh-autosuggestions | Fish-like command suggestions | Both |
 | zsh-syntax-highlighting | Real-time command highlighting | Both |
 | ripgrep | Fast recursive search (`rg`) | Both |
 | bat | `cat` with syntax highlighting | Both |
+| glow | Markdown renderer for Herdr's file viewer | Both |
 | fd | Fast `find` alternative | Both |
 | fzf | Fuzzy finder | Both |
 | delta | Git diff pager | Both |
@@ -74,6 +101,7 @@ ssh hetzner-16g -t 'tmux new-session -A -s main'
 | terminal-notifier | macOS Notification Center integration | macOS |
 | JetBrains Mono NF | Nerd Font with icon support | macOS |
 | iTerm2 | Terminal emulator | macOS |
+| Ghostty | Terminal frontend for the shared Herdr interface | macOS |
 
 ## Notifications
 

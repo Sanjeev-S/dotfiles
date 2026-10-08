@@ -3,11 +3,12 @@ set -euo pipefail
 
 {{ if eq .chezmoi.os "darwin" -}}
 echo "==> Installing macOS packages via Homebrew..."
-brew install mosh jq gh starship terminal-notifier ripgrep bat fd fzf delta zoxide tmux oven-sh/bun/bun
+brew install mosh jq gh starship terminal-notifier ripgrep bat glow git-delta herdr fd fzf zoxide tmux oven-sh/bun/bun
 # et is in homebrew/core now — avoid the MisterTea/et tap, whose untrusted-tap
 # status makes `brew autoremove` orphan et's deps (libsodium, curl). See b83724b era.
 brew install et
 brew install --cask iterm2
+[ -d /Applications/Ghostty.app ] || brew install --cask ghostty
 brew install --cask font-jetbrains-mono-nerd-font
 brew install --cask 1password-cli
 # Guard: the app may already exist from a direct download, which makes the cask install fail.
@@ -41,6 +42,37 @@ fi
 
 "${SUDO[@]}" apt-get update
 "${SUDO[@]}" apt-get install -y jq mosh zsh gh ripgrep bat fd-find fzf git-delta zoxide unzip openssh-server
+
+# Glow's official signed APT repository supports amd64 and arm64 dev boxes.
+if [ ! -f /etc/apt/sources.list.d/charm.list ]; then
+  "${SUDO[@]}" install -d -m 0755 /etc/apt/keyrings
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | \
+    "${SUDO[@]}" gpg --batch --yes --dearmor -o /etc/apt/keyrings/charm.gpg
+  "${SUDO[@]}" chmod 0644 /etc/apt/keyrings/charm.gpg
+  echo 'deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *' | \
+    "${SUDO[@]}" tee /etc/apt/sources.list.d/charm.list > /dev/null
+fi
+"${SUDO[@]}" apt-get update
+"${SUDO[@]}" apt-get install -y glow
+if [ "$(uname -m)" = aarch64 ]; then
+  # herdr-file-viewer publishes no Linux ARM64 binary; its plugin hook builds it.
+  "${SUDO[@]}" apt-get install -y build-essential
+fi
+
+# Ubuntu names the executable batcat; plugins invoke bat directly.
+install -d "$HOME/.local/bin"
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v bat &>/dev/null && command -v batcat &>/dev/null; then
+  ln -s "$(command -v batcat)" "$HOME/.local/bin/bat"
+fi
+
+# Saved machines and reviewr need Herdr >= 0.9.3. Install/upgrade the binary
+# only: replacing a running server is a separate, interactive operation.
+herdr_version="$(herdr --version 2>/dev/null | awk '{print $2}' || true)"
+if [ -z "$herdr_version" ] || \
+   [ "$(printf '%s\n' 0.9.3 "$herdr_version" | sort -V | head -n 1)" != 0.9.3 ]; then
+  curl -fsSL https://herdr.dev/install.sh | sh
+fi
 
 {{ if or (eq .machine_type "linux-dev") (eq .machine_type "dgx-spark") -}}
 # Eternal Terminal
