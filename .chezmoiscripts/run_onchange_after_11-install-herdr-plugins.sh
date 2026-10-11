@@ -17,6 +17,10 @@ install_plugin() {
        [ "$(uname -m)" = aarch64 ]; then
       mise install rust@1.96.0
       mise exec rust@1.96.0 -- herdr --session dotfiles-setup plugin install "$source" --ref "$ref" --yes
+    # Auto Title builds from source at install time and needs Go.
+    elif [ "$id" = herdr.auto-title ]; then
+      mise install go@1.27.1
+      mise exec go@1.27.1 -- herdr --session dotfiles-setup plugin install "$source" --ref "$ref" --yes
     else
       herdr --session dotfiles-setup plugin install "$source" --ref "$ref" --yes
     fi
@@ -26,3 +30,4 @@ install_plugin() {
 # Pin published releases: upstream main can reference assets not released yet.
 install_plugin herdr-file-viewer smarzban/herdr-file-viewer v1.17.0
 install_plugin persiyanov.reviewr persiyanov/herdr-reviewr v0.46.0
+install_plugin herdr.auto-title kryptamine/herdr-auto-title v0.13.1

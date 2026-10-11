@@ -28,6 +28,10 @@ resize_mode = ["prefix+r", "ctrl+alt+r"]
 [ui]
 mouse_capture = true
 
+# Auto Title names each pane after its session; give that name its own line.
+[ui.sidebar.agents]
+rows = [["state_icon", "machine", "workspace", "agent"], ["pane"]]
+
 [ui.toast]
 delivery = "terminal"
 
