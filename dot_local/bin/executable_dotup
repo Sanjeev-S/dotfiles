@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Update dotfiles, Claude Code, Codex CLI, Cursor agent CLI, and external skills.
+# Update dotfiles, mise, Node, Claude Code, Codex CLI, Cursor agent CLI, and external skills.
 # Runs hourly via launchd/systemd-user; no-ops if successful run < 24h ago.
 # Failure surfaces as a banner in zsh sessions; see ADR 0001.
 
@@ -75,8 +75,49 @@ run_step claude bash -c 'set -o pipefail; curl -fsSL https://claude.ai/install.s
 
 run_step cursor bash -c 'set -o pipefail; curl -fsSL https://cursor.com/install | bash'
 
+if [ "$(uname -s)" = "Darwin" ]; then
+  run_step mise brew upgrade mise
+else
+  run_step mise mise self-update --yes
+fi
+
+# Succeeds when npm's Codex is running. Match by install path: ChatGPT.app
+# runs its own bundled `codex`.
+npm_codex_running() {
+  local npm_root
+  npm_root=$(npm root -g) || return 2
+  pgrep -u "$(id -u)" -f "$npm_root/@openai/codex/" >/dev/null
+}
+
+# Both updates retire the directory a running Codex executes from: npm
+# replaces even an unchanged package, and mise removes the upgraded-from
+# Node version, which holds the global packages.
+ensure_codex_idle() {
+  npm_codex_running
+  case $? in
+    0)
+      echo "    Deferred: stop Codex sessions and the remote connection, then retry dotup --force"
+      return 1
+      ;;
+    1) return 0 ;;
+    *)
+      echo "    Cannot check for running Codex processes; leaving installation intact"
+      return 1
+      ;;
+  esac
+}
+
+upgrade_node() {
+  if [ -z "$(mise outdated node 2>/dev/null)" ]; then
+    echo "    Node $(node -v) is current"
+    return 0
+  fi
+  ensure_codex_idle || return 1
+  mise upgrade node
+}
+
 update_codex() {
-  local npm_root installed_version latest_version process_status
+  local npm_root installed_version latest_version
   npm_root=$(npm root -g) || return "$?"
   installed_version=$(node -p 'require(process.argv[1]).version' \
     "$npm_root/@openai/codex/package.json" 2>/dev/null) || installed_version=""
@@ -89,22 +130,11 @@ update_codex() {
     echo "    Codex $installed_version is current"
     return 0
   fi
-
-  # npm replaces even an unchanged package. A running Codex can then lose
-  # its bundled helpers when npm removes the retired installation directory.
-  # Match by install path: ChatGPT.app runs its own bundled `codex`.
-  if pgrep -u "$(id -u)" -f "$npm_root/@openai/codex/" >/dev/null; then
-    echo "    Codex update deferred: stop Codex sessions and the remote connection, then retry dotup --force"
-    return 1
-  else
-    process_status=$?
-    if [ "$process_status" -ne 1 ]; then
-      echo "    Cannot check for running Codex processes; leaving installation intact"
-      return "$process_status"
-    fi
-  fi
+  ensure_codex_idle || return 1
   npm install -g "@openai/codex@$latest_version"
 }
+
+run_step node upgrade_node
 
 if command -v npm >/dev/null 2>&1; then
   run_step codex update_codex

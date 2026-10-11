@@ -31,8 +31,14 @@ echo entered >> "$FIXTURE/entries"
 touch "$FIXTURE/entered"
 while [ -e "$FIXTURE/hold" ]; do sleep 0.05; done
 ''')
-        for name in ("secrets-refresh", "sync-skills", "npm"):
+        for name in ("secrets-refresh", "sync-skills", "brew", "mise", "node"):
             self.write_command(name, "exit 0\n")
+        self.write_command("npm", '''
+case "$1" in
+  root) echo "$FIXTURE/npm-root" ;;
+  view) echo 1.0.0 ;;
+esac
+''')
         self.write_command("curl", '''
 if [ -e "$FIXTURE/fail" ] && [[ "$*" == *claude.ai* ]]; then
   echo 'exit 9'
