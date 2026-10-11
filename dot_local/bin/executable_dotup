@@ -75,8 +75,39 @@ run_step claude bash -c 'set -o pipefail; curl -fsSL https://claude.ai/install.s
 
 run_step cursor bash -c 'set -o pipefail; curl -fsSL https://cursor.com/install | bash'
 
+update_codex() {
+  local npm_root installed_version latest_version process_status
+  npm_root=$(npm root -g) || return "$?"
+  installed_version=$(node -p 'require(process.argv[1]).version' \
+    "$npm_root/@openai/codex/package.json" 2>/dev/null) || installed_version=""
+  latest_version=$(npm view @openai/codex@latest version) || return "$?"
+  if [ -z "$latest_version" ]; then
+    echo "    Could not determine the latest Codex version"
+    return 1
+  fi
+  if [ "$installed_version" = "$latest_version" ]; then
+    echo "    Codex $installed_version is current"
+    return 0
+  fi
+
+  # npm replaces even an unchanged package. A running Codex can then lose
+  # its bundled helpers when npm removes the retired installation directory.
+  # Match by install path: ChatGPT.app runs its own bundled `codex`.
+  if pgrep -u "$(id -u)" -f "$npm_root/@openai/codex/" >/dev/null; then
+    echo "    Codex update deferred: stop Codex sessions and the remote connection, then retry dotup --force"
+    return 1
+  else
+    process_status=$?
+    if [ "$process_status" -ne 1 ]; then
+      echo "    Cannot check for running Codex processes; leaving installation intact"
+      return "$process_status"
+    fi
+  fi
+  npm install -g "@openai/codex@$latest_version"
+}
+
 if command -v npm >/dev/null 2>&1; then
-  run_step codex npm install -g @openai/codex
+  run_step codex update_codex
 else
   echo "==> [codex] FAILED (npm not in PATH)"
   failed+=("codex")
