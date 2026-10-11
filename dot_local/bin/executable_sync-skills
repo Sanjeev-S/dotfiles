@@ -7,6 +7,10 @@
 # npx skills: ensure desired GitHub packages are installed globally for
 # Claude / Codex / Cursor, then `npx skills update -g -y` refreshes via
 # the lockfile at ~/.agents/.skill-lock.json.
+#
+# herdr skill: regenerated from the installed binary (`herdr --skill`) into
+# ~/.local/share/herdr-skill and symlinked into Claude / Codex. Herdr is
+# expected on every machine, so a missing binary FAILS the step.
 
 set -uo pipefail
 
@@ -124,6 +128,54 @@ if [ -d "$MP_REPO/skills" ]; then
     fi
   done
 fi
+
+# --- herdr skill ---
+# Herdr ships its agent skill inside the binary, so the canonical copy is
+# generated rather than cloned, then linked like the mattpocock skills above.
+# The packages chezmoiscript installs Herdr everywhere; a missing binary is a
+# real fault, so this step fails (dotup banner names "skills") instead of
+# skipping like npx does.
+HERDR_SKILL_DIR="$HOME/.local/share/herdr-skill"
+
+sync_herdr_skill() {
+  local tmp version dest link_ok=1
+
+  if ! command -v herdr >/dev/null 2>&1; then
+    echo "    herdr not on PATH; it is expected on every machine" >&2
+    return 1
+  fi
+  version="$(herdr --version 2>/dev/null || echo unknown)"
+
+  mkdir -p "$HERDR_SKILL_DIR" || return 1
+  tmp="$(mktemp "$HERDR_SKILL_DIR/.SKILL.md.XXXXXX")" || return 1
+  if ! herdr --skill > "$tmp" || [ ! -s "$tmp" ]; then
+    rm -f "$tmp"
+    echo "    herdr --skill failed or produced no output" >&2
+    return 1
+  fi
+  if cmp -s "$tmp" "$HERDR_SKILL_DIR/SKILL.md"; then
+    rm -f "$tmp"
+    echo "    unchanged ($version)"
+  else
+    chmod 644 "$tmp" && mv -f "$tmp" "$HERDR_SKILL_DIR/SKILL.md" || return 1
+    echo "    updated ($version)"
+  fi
+
+  # Same guard as link_matt_skills: only create or repoint a symlink, never
+  # replace a real file or directory.
+  for dest in "$CLAUDE_SKILLS_DIR/herdr" "$CODEX_SKILLS_DIR/herdr"; do
+    mkdir -p "$(dirname "$dest")" || return 1
+    if [ -L "$dest" ] || [ ! -e "$dest" ]; then
+      ln -sfn "$HERDR_SKILL_DIR" "$dest" || link_ok=0
+    else
+      echo "    $dest exists and is not a symlink; remove it manually" >&2
+      link_ok=0
+    fi
+  done
+  [ "$link_ok" -eq 1 ]
+}
+
+run_step herdr-skill sync_herdr_skill
 
 # --- npx skills (Agent Skills ecosystem) ---
 # First run installs missing packages; every run refreshes via lockfile hashes.
