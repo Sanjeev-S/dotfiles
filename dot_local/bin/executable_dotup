@@ -55,7 +55,9 @@ failed=()
 run_step() {
   local name="$1"; shift
   echo "==> [$name] $*"
-  if "$@"; then
+  # Close the lock for the step: daemons it spawns (op daemon) outlive dotup
+  # and would otherwise hold the lock, skipping every later run.
+  if "$@" 9>&-; then
     echo "==> [$name] ok"
   else
     local rc=$?
