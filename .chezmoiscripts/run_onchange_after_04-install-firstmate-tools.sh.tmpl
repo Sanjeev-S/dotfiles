@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Firstmate toolchain. The five axi npm packages are mise `npm:` tools in
+# dot_config/mise/config.toml (installed by 01-install-mise-tools); this
+# script covers the two curl-installed binaries. dotup re-runs the same
+# installers and keeps everything current.
+
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
+mkdir -p "$HOME/.local/bin"
+
+# Both installers drop into ~/.local/bin only when it is already on PATH;
+# otherwise they fall back to /usr/local/bin and sudo.
+echo "==> Installing treehouse..."
+curl -fsSL https://kunchenguid.github.io/treehouse/install.sh | sh
+
+echo "==> Installing no-mistakes..."
+curl -fsSL https://raw.githubusercontent.com/kunchenguid/no-mistakes/main/docs/install.sh | sh
+
+echo "==> Firstmate tools installed"

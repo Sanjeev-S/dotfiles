@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Update dotfiles, mise, Node, Claude Code, Codex CLI, Cursor agent CLI, and external skills.
+# Update dotfiles, mise, Node, Claude Code, Codex CLI, Cursor agent CLI, the Firstmate
+# toolchain (axi packages, treehouse, no-mistakes), and external skills.
 # Runs hourly via launchd/systemd-user; no-ops if successful run < 24h ago.
 # Failure surfaces as a banner in zsh sessions; see ADR 0001.
 
@@ -137,6 +138,16 @@ update_codex() {
 }
 
 run_step node upgrade_node
+
+# Firstmate toolchain: the axi packages are mise npm: tools (see
+# dot_config/mise/config.toml). Name them explicitly; a bare `mise upgrade`
+# would bump Node past the Codex guard above.
+run_step axi mise upgrade -y \
+  npm:gh-axi npm:tasks-axi npm:quota-axi npm:chrome-devtools-axi npm:lavish-axi
+
+run_step treehouse bash -c 'set -o pipefail; curl -fsSL https://kunchenguid.github.io/treehouse/install.sh | sh'
+
+run_step no-mistakes bash -c 'set -o pipefail; curl -fsSL https://raw.githubusercontent.com/kunchenguid/no-mistakes/main/docs/install.sh | sh'
 
 if command -v npm >/dev/null 2>&1; then
   run_step codex update_codex

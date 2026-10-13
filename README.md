@@ -18,7 +18,7 @@ Manual:
 
 ```bash
 chezmoi apply        # apply current source to $HOME
-dotup --force        # update chezmoi + Claude + Codex + Matt Pocock skills now
+dotup --force        # update chezmoi + Claude + Codex + axi/treehouse/no-mistakes + Matt Pocock skills now
 ```
 
 Scheduled: `dotup` runs hourly (launchd on macOS, systemd-user on Linux) and no-ops if a successful run happened in the last 24h. On any step failure, a banner appears in new zsh sessions until the next clean run. See `docs/adr/0001-dotup-scheduling-architecture.md`.
