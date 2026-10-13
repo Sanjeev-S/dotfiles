@@ -1,6 +1,13 @@
 [tools]
 node = "24"
 python = "3.12"
+# Firstmate toolchain. npm: backend tools live outside the Node install tree,
+# so dotup's Node upgrade does not remove them. `latest` is deliberate.
+"npm:gh-axi" = "latest"
+"npm:tasks-axi" = "latest"
+"npm:quota-axi" = "latest"
+"npm:chrome-devtools-axi" = "latest"
+"npm:lavish-axi" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["node", "python"]
