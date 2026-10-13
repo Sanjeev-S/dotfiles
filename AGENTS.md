@@ -62,3 +62,19 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply Sanje
 ```bash
 chezmoi apply
 ```
+
+## Cloud Agent
+
+Chezmoi and zsh are on the default PATH. The checked-in test calls the real `chezmoi` binary for template rendering:
+
+```bash
+python3 -B -m unittest discover -s docs/tests -v
+```
+
+Render one template without writing `$HOME` or prompting for a machine type:
+
+```bash
+chezmoi execute-template --override-data '{"machine_type":"linux-dev"}' < dot_aliases.tmpl
+```
+
+`chezmoi apply` and `chezmoi init --apply` prompt for a machine type and a 1Password service account token, then install machine packages and fetch secrets. Use `execute-template` while editing this repo.
